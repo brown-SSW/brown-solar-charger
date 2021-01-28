@@ -42,7 +42,7 @@ void setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password); //connect to wifi network
 
-  Serial.print("Connecting to WiFi");
+  Serial.print(F("Connecting to WiFi"));
   while (WiFi.status() != WL_CONNECTED) { //wait until connected
     delay(1000);
     Serial.print(".");
@@ -52,7 +52,7 @@ void setup() {
     }
   }
   Serial.println();
-  Serial.print("local ip: ");  Serial.println(WiFi.localIP()); //display IP address of station on local network, for debugging and internet setup
+  Serial.print(F("local ip: "));  Serial.println(WiFi.localIP()); //display IP address of station on local network, for debugging and internet setup
 
   updateDNS(); //likely unnecessary when set up by Brown IT, see function definition for details
 
@@ -80,7 +80,7 @@ void setup() {
 
 void notFound(AsyncWebServerRequest * request)
 {
-  request->send(404, "text/html", "page not found :(");
+  request->send(404, "text/html", F("page not found :("));
 }
 
 void updateDNS() {
@@ -93,14 +93,14 @@ void updateDNS() {
   */
   HTTPClient http;
   Serial.println("updating DNS");
-  http.begin("https://www.duckdns.org/update?domains=bruno-sun&token=14552b6f-450e-441e-94cc-c7841ccad875");
+  http.begin(F("https://www.duckdns.org/update?domains=bruno-sun&token=14552b6f-450e-441e-94cc-c7841ccad875"));
   int httpCode = http.GET();
   if (httpCode > 0) {
     String payload = http.getString();
     if (httpCode == 200 && payload == "OK") {
-      Serial.println("DNS update successful");
+      Serial.println(F("DNS update successful"));
     } else {
-      Serial.println("DNS update error:");
+      Serial.println(F("DNS update error:"));
       Serial.println(httpCode);
       Serial.println(payload);
     }
