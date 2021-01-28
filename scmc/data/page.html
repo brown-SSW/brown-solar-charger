@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <script>
+        var json_obj;
+        updateData();
+        function updateData() {
+            json_obj = JSON.parse(Get("http://bruno-sun.duckdns.org/data.json"));
+            // set content from json data
+            document.getElementById("myvar").textContent = json_obj.time;
+            redraw();
+
+            setTimeout(updateData, 5000);
+        }
+
+
+        function redraw() {
+            drawGraph1();
+        }
+        function drawGraph1() {
+            var graph1c = document.getElementById("graph1");
+            var graph1div = document.getElementById("graph1div");
+            graph1c.width = 0;
+            graph1c.height = 0;
+            graph1divproperties = window.getComputedStyle(graph1div, null);
+            graph1c.width = parseInt(graph1divproperties.width);
+            graph1c.height = parseInt(graph1divproperties.width) / 2;
+            var ctx = graph1c.getContext("2d");
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(0, 0, graph1c.width, graph1c.height);
+            ctx.fillStyle = "green";
+            for (var i = 0; i < json_obj.graph1.length; i++) {
+                ctx.fillRect(graph1c.width * (i + 1) / (json_obj.graph1.length + 1), graph1c.height, graph1c.width / 2 / json_obj.graph1.length, -1.0 / 4096 * json_obj.graph1[i] * graph1c.height);
+            }
+        }
+
+        function Get(yourUrl) {
+            var Httpreq = new XMLHttpRequest();
+            Httpreq.open("GET", yourUrl, false);
+            Httpreq.send(null);
+            return Httpreq.responseText;
+        }
+    </script>
+</head>
+
+<body onload="updateData()" onresize="redraw()">
+    <div class="grid-container">
+        <div class="val1div">
+            <h1> myvar= <span id="myvar">loading...</span></h1>
+        </div>
+        <div id="graph1div" class="graph1div">
+            <canvas id="graph1"></canvas>
+        </div>
+    </div>
+</body>
+
+</html>
