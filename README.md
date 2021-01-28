@@ -7,5 +7,5 @@ Made by members of Brown University club "Scientists for a Sustainable World" (s
 
 
 
-To contribute: assign yourself to an issue, do your work in a new branch, then make a pull request!
+To contribute: assign yourself to an [issue](https://github.com/brown-SSW/brown-solar-charger/issues), do your work in a new branch, then make a pull request!
 
