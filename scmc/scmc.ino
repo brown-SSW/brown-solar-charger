@@ -4,7 +4,7 @@
    Compatible with esp32 dev board with 38 pins
    charge controller: Renogy ROVER ELITE 40A MPPT
 
-   Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021
+   Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021 https://github.com/brown-SSW/brown-solar-charger
 */
 
 #include <WiFi.h> //used for sending stuff over the wifi radio within the esp32
