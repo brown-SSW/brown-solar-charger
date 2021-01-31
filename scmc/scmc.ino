@@ -8,7 +8,6 @@
 */
 
 #include <WiFi.h> //used for sending stuff over the wifi radio within the esp32
-#include <SPIFFS.h> //this library gives access to an internal file system where webpage (.html) files can be stored
 //https://randomnerdtutorials.com/install-esp32-filesystem-uploader-arduino-ide/
 #include <ESPAsyncWebServer.h> //library for being a web server
 #include <HTTPClient.h> //used for making http GET requests to other servers
@@ -31,10 +30,6 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   Serial.begin(115200);
-  if (!SPIFFS.begin()) { //start the internal filesystem thing
-    Serial.println("An Error has occurred while mounting SPIFFS");
-    while (true); //this makes the code freeze if there's an error. TODO: better error handling
-  }
 
   //set up pin modes and hardware connections.
   //everything should be in the safest state until the code has fully started
@@ -56,12 +51,6 @@ void setup() {
 
   updateDNS(); //likely unnecessary when set up by Brown IT, see function definition for details
 
-  server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) { //set up function for what to do when the webserver is asked for its home webpage
-    digitalWrite(LED_BUILTIN, HIGH); //for debugging, blink led when requests are made
-    request->send(SPIFFS, "/page.html", "text/html"); //send the file page.html that was stored in SPIFFS
-    digitalWrite(LED_BUILTIN, LOW);
-  });
-
   server.on("/data.json", HTTP_GET, [](AsyncWebServerRequest * request) { //set up function for what to do when the webpage asks for new data. [server's ip or web address]/data.json
     digitalWrite(LED_BUILTIN, HIGH); //for debugging, blink led when requests are made
     String response;
@@ -70,17 +59,10 @@ void setup() {
     digitalWrite(LED_BUILTIN, LOW);
   });
 
-  server.onNotFound(notFound); //setup a page not found response
-
   server.begin();
   digitalWrite(LED_BUILTIN, LOW);
   //one time setup finished
 
-}
-
-void notFound(AsyncWebServerRequest * request)
-{
-  request->send(404, "text/html", F("page not found :("));
 }
 
 void updateDNS() {
