@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="EN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>~</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="scripts.js"></script>
+    <style type="text/css">
+    body {
+        margin: 0 auto;
+        max-width: 50rem;
+        font-family: sans-serif;
+        line-height: 1.4;
+        padding: 4rem 2rem;
+        background: #FFF;
+        color: #333;
+    }
+
+    div.plot {
+        padding: 1rem;
+        /*display: block;*/
+        width: 100%;
+    }
+
+    div.placeholder {
+        display: grid;
+
+    }
+
+    div.placeholder p {
+        margin: auto;
+    }
+    </style>
+</head>
+<!-- 
+https://medium.com/@vworri/use-plotly-in-javascript-to-creat-a-bar-graph-from-json-82d7220b463d
+https://stackoverflow.com/questions/1078118/how-do-i-iterate-over-a-json-structure#1112609
+https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
+ -->
+
+<body>
+    <h1>Plotly tech demo</h1>
+    <p>this is a paragraph</p>
+    <div id="plot" class='plot'></div>
+    <script type="text/javascript">
+    loadJSON();
+    setInterval(loadJSON,1000*30);//interval in ms; currently set to refresh every 30 seconds.
+    </script>
+</body>
+
+</html>
