@@ -1,0 +1,16 @@
+#header {
+  height: 20%;
+  color: #21bf27;
+}
+
+#body {
+  height: 80%;
+}
+
+.text {
+    font-family: 'Sriracha', cursive;
+}
+
+.header-text {
+    text-align: center;
+}
