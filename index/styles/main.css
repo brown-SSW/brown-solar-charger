@@ -1,6 +1,6 @@
 #header {
   height: 20%;
-  color: #21bf27;
+  background-color: #21bf27;
 }
 
 #body {
@@ -13,4 +13,30 @@
 
 .header-text {
     text-align: center;
+}
+
+img {
+  box-shadow: 2px 2px 7px .1px #888888;
+}
+
+#solar-panel, #graph-1, #graph-2, #graph-3 {
+  width: 25%;
+}
+
+#main-grid {
+  display: grid;
+  justify-content: space-evenly;
+  grid-template-columns: repeat(2, 50%);
+  grid-template-rows: 20% 50% 30%;
+  grid-auto-flow: column;
+}
+
+#left-title, p1 {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+#graph-2-div, #graph-3-div {
+  grid-row: 3;
+  grid-column: 2;
 }
