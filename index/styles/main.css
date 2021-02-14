@@ -12,7 +12,9 @@
 }
 
 .header-text {
-    text-align: center;
+  text-align: center;
+  padding-bottom: 5px;
+  margin: 0px
 }
 
 img {
@@ -39,4 +41,15 @@ img {
 #graph-2-div, #graph-3-div {
   grid-row: 3;
   grid-column: 2;
+}
+
+#background-solar {
+  position: absolute;
+  width: 845px;
+  top: 15%;
+  bottom: 0px;
+  left: -2px;
+  margin: 0px;
+  box-shadow: 0 0 0 0;
+  opacity: .25;
 }
