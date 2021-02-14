@@ -6,34 +6,12 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>~</title>
+    <!-- Raphael must be included before justgage -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/justgage/1.2.9/justgage.min.js"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="scripts.js"></script>
-    <style type="text/css">
-    body {
-        margin: 0 auto;
-        max-width: 50rem;
-        font-family: sans-serif;
-        line-height: 1.4;
-        padding: 4rem 2rem;
-        background: #FFF;
-        color: #333;
-    }
-
-    div.plot {
-        padding: 1rem;
-        /*display: block;*/
-        width: 100%;
-    }
-
-    div.placeholder {
-        display: grid;
-
-    }
-
-    div.placeholder p {
-        margin: auto;
-    }
-    </style>
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <!-- 
 https://medium.com/@vworri/use-plotly-in-javascript-to-creat-a-bar-graph-from-json-82d7220b463d
@@ -44,10 +22,28 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
 <body>
     <h1>Plotly tech demo</h1>
     <p>this is a paragraph</p>
-    <div id="plot" class='plot'></div>
+    <ul>
+        <li>stat 1: <strong><span id="st1">0</span></strong> meters</li>
+        <li>stat 2: <strong><span id="st2">0</span></strong> kJ</li>
+    </ul>
+    <div id="avail" class='status'>Available</div>
+    <div id="unavail" class='status'>Unavailable</div>
+    <div class="dials">
+        <div id="g2"></div>
+        <div id="battery"></div>
+        <div id="g1"></div>
+    </div>
+    <div id="s1" class='plot'></div>
+    <div id="s2" class='plot'></div>
+    <div id="s3" class='plot'></div>
     <script type="text/javascript">
+    var batt = new JustGage(batt_lay);
+    var g1 = new JustGage(norm_gauge('g1', 10, g_lay));
+    var g2 = new JustGage(norm_gauge('g2', 50, g_lay));
+    let avail = document.getElementById('avail');
+    let unavail = document.getElementById('unavail');
     loadJSON();
-    setInterval(loadJSON,1000*30);//interval in ms; currently set to refresh every 30 seconds.
+    setInterval(loadJSON, 1000 * 30); //interval in ms; currently set to refresh every 30 seconds.
     </script>
 </body>
 
