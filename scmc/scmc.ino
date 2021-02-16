@@ -29,8 +29,12 @@ int MQTTport = 1883;
 
 WiFiClient wifiClient;
 PubSubClient MQTTclient(wifiClient);
+int mqttArrayCounter = 0;
+byte mqttBuffer[100] = {0};
 
 CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
+
+unsigned long lastPublishMillis = 0; //milliseconds
 
 
 void setup() {
@@ -55,6 +59,35 @@ void loop() {
   wifiAvailable = checkWifiConnection();
   timeAvailable = updateTimeClock();
   mqttAvailable = checkMQTTConnection();
+  MQTTclient.loop();
+
+  if (millis() - lastPublishMillis > 10000) {
+    lastPublishMillis = millis();
+    if (mqttAvailable) {
+      publishMQTTMessage();
+    }
+  }
 
   vTaskDelay(20);
+}
+
+void publishMQTTMessage() {
+  mqttArrayCounter = 0;
+  mqttSendIn(-12345);
+  mqttSendFl(5002.4 / .5);
+  MQTTclient.publish("dataTopic", mqttBuffer, mqttArrayCounter);
+}
+
+void subscribeMQTT() {
+  MQTTclient.subscribe("inTopic");
+}
+
+void MQTTcallback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("MQTT RECV: ");
+  Serial.print(topic);
+  Serial.print(": ");
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
 }
