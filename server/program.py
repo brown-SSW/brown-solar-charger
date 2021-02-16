@@ -5,29 +5,37 @@ import paho.mqtt.client as mqtt
 import time
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import struct
 
-jsonData=['hhh']
+jsonData=[]
 
 def dataCallback(client,userdata,message):
 	global jsonData
 	topic=str(message.topic)
-	message=str(message.payload.decode("utf-8"))
-	print(topic+': '+message)
-	splitMessage=message.split(",")
-	if len(splitMessage)==2:
+	counter=0
+	msgArr=message.payload
+
+
+	if(len(msgArr)==8):
+
+		vala=struct.unpack('i',msgArr[counter:counter+4])[0]
+		counter+=4
+
+		valb=struct.unpack('f',msgArr[counter:counter+4])[0]
+		counter+=4
+
 		connection=sqlite3.connect("testDB.db")
 		cursor=connection.cursor()
-		cursor.execute("""insert into data values(datetime('now'),?,?)""",(splitMessage[0],splitMessage[1]))
+		cursor.execute("""insert into data values(datetime('now'),?,?)""",(vala,valb))
 		jsonData=cursor.execute("select * from data").fetchall()
-		print(jsonData)
 		connection.commit()
+
 
 class MyServer(BaseHTTPRequestHandler):
 	def do_GET(self):
 		self.send_response(200)
 		self.send_header("Content-type", "application/json")
 		self.end_headers()
-		print(jsonData)
 		self.wfile.write(json.dumps(jsonData).encode('utf-8'))
 
 
