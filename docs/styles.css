@@ -22,24 +22,40 @@ div.placeholder {
 div.placeholder p.error {
     margin: auto;
 }
-div.dials{
+
+div.dials {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
 }
-div.status{
-    color: #FFF;
+
+div.status {
+    /*color: #FFF;*/
     width: 25%;
     margin: 1rem auto;
     text-align: center;
     border-radius: 2px;
     font-weight: bold;
 }
-.disp{
+
+/*.disp{
     display: none;
 }
-#avail{
+*/
+.hide,
+.status .hide,
+.status .disp .hide,
+.disp {
+    display: none;
+}
+
+#avail {
     background: #21bf27;
 }
-#unavail{
+
+#unavail {
     background: #d02c06;
+}
+
+#maintain {
+    background: '#000000';
 }

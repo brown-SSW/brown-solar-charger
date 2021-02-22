@@ -1,5 +1,7 @@
 // CONSTANTS & IMPORTANT VARIABLES
-const url = "https://bellala.org/assets/testing.json";
+// MADE USING FIREBASE
+const base_url = 'https://brown-solar-charger-default-rtdb.firebaseio.com/';
+const end_bit = '.json';
 const config = {
     // staticPlot: true, //makes chart static and no longer interactive, uncomment to turn them into static plots
     displayModeBar: false, // disables toolbar for aesthetics
@@ -8,6 +10,7 @@ const config = {
 const layout = {
 
 };
+const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
 const batt_lay = {
     id: "battery", // the id of the html element
     // title: "Battery Capacity",
@@ -18,38 +21,31 @@ const batt_lay = {
     // decimals: 2,
     gaugeWidthScale: 0.6,
     symbol: '%',
-    donut: true,
-    donutStartAngle: 0,
+    // donut: true,
+    // donutStartAngle: 0,
     showInnerShadow: false,
     counter: true,
-    // hideMinMax: true,
+    hideMinMax: true,
     noGradient: true,
-    // gaugeColor: "#00000000", // set transparency
-    // customSectors: {
-    //     ranges: [{
-    //             color: "#d02c06",
-    //             lo: 0,
-    //             hi: 10
-    //         },
-    //         {
-    //             color: "#F4AC45",
-    //             lo: 11,
-    //             hi: 50
-    //         },
-    //         {
-    //             color: "#21bf27",
-    //             lo: 51,
-    //             hi: 100
-    //         }
-    //     ]
-    // },
     levelColorsGradient: false,
-    levelColors: ["#d02c06", "#F4AC45", "#21bf27"]
+    // gaugeColor: "#00000000", // set transparency
+    levelColors: levelSectors(section_colors,[1,4,5]),
     // relativeGaugeSize: true
 };
+
+function levelSectors(colors, frac) {
+    var arr = [];
+    for (i = 0; i < colors.length; i++) {
+        for (j = 0; j < frac[i]; j++) {
+            arr.push(colors[i]);
+        }
+    }
+    return arr;
+}
+
 const g_lay = {
     value: 0,
-    min: 0,//set hard max or calculate max?
+    min: 0, //set hard max or calculate max? EDIT: get max from settings json
     gaugeWidthScale: 0.6,
     showInnerShadow: false,
     // gaugeColor: "#00000000",
@@ -64,107 +60,180 @@ const g_lay = {
         stroke_linecap: 'round'
     },
     levelColors: ["#00bec4"],
+    labelFontColor: '#1f2120',
+    valueFontColor: '#1f2120',
+
+
 };
+
+var DialGenMax;
+var DialUseMax;
+var BatteryDischargeFloor;
+var lastUpdate = {
+    'settings': null,
+    'liveData': null,
+    'dayData': null,
+    'monthData': null
+};
+
 // let data;
 // https://github.com/bernii/gauge.js/
 // https://github.com/toorshia/justgage
 // data loading
-function loadJSON() {
+// ah yes creative variable names
+function loadJSON(sub, cb, time) {
+    /* where,
+    sub is specific portion of json to load
+    cb is callback function to run
+    time is an object containing ideal and alt times to wait in ms
+    */
     //http request to get the json
+    var linky = base_url + sub + end_bit;
     var http = new XMLHttpRequest();
-    http.open('get', url); // get the json
+    http.open('get', linky); // get the json
     http.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) { //was I able to access the json?
-            json = JSON.parse(http.responseText);
-            // document.getElementById('battery').innerHTML = json.dials.s1;
-            callback(json, true);
-        } else {
-            json = '';
-            callback(json, false);
+        if (this.readyState == 4) { //was I able to access the json?
+            if (this.status == 200) {
+                var json = JSON.parse(http.responseText);
+                cb(json);
+                setTimeout(loadJSON, time.up, sub, cb, time);
+            } else {
+                allDown();
+                setTimeout(loadJSON, time.down, sub, cb, time);
+            }
         }
     };
     http.send();
 }
 
-function isDown() {
-    // replaces plot divs w/ placeholders if called
-    // Can be customized to even change the entire page.
-    let x = document.getElementsByClassName("plot");
-    let message = 'Error: no data available';
+function norm_gauge(obj) {
+    //makes a generic gauge w/ defined params
+    // id, max are required
+    var keys = Object.keys(obj);
+    var d = g_lay;
+    keys.forEach(function(val) { d[val] = obj[val] });
+    return d;
+}
+
+function fill_stat(id, stat) {
+    // auto-populate an element with id "id" with the statistic "stat"
+    // basically a shorthand
+    document.getElementById(id).innerHTML = stat;
+}
+
+
+function call_stats(d) {
+    liveUp(d);
+    if (d.Available) {
+        availUp();
+    } else {
+        availDown();
+    }
+}
+
+function liveUp(d) {
+    // uses math.random values because we don't have actual values to play with
+    batt.refresh(batt_scale(Math.round(Math.random() * 100), BatteryDischargeFloor));
+    g1.refresh(Math.round(Math.random() * DialGenMax), DialGenMax);
+    g2.refresh(Math.round(Math.random() * DialUseMax), DialUseMax);
+    fill_stat('st1', Math.round(Math.random() * 100));
+    fill_stat('st2', Math.round(Math.random() * 100));
+}
+
+function availUp() {
+    avail.classList.remove("disp");
+    unavail.classList.add("disp");
+}
+
+function availDown() {
+    avail.classList.add("disp");
+    unavail.classList.remove("disp");
+}
+
+function liveDown() {
     batt.refresh(0);
     g1.refresh(0);
     g2.refresh(0);
-    avail.classList.add("disp");
-    unavail.classList.remove("disp");
     fill_stat('st1', 'N/A');
     fill_stat('st2', 'N/A');
-    for (i = 0; i < x.length; i++) {
-        x[i].classList.add('placeholder');
-        x[i].innerHTML = '<p class="error">' + message + '</p>';
+}
+
+function call_settings(d) {
+    var message = d.websiteErrorMessage;
+    DialGenMax = d.DialGenMax;
+    DialUseMax = d.DialUseMax;
+    BatteryDischargeFloor = d.BatteryDischargeFloor;
+    lastUpdate.settings = new Date();
+    fill_stat('lastUpdate', lastUpdate.settings);
+    if (!(message == 'null')) {
+        avail.classList.add("hide");
+        unavail.classList.add("hide");
+        fill_stat('maintain', message);
+        maintain.classList.remove("disp");
+    } else {
+        avail.classList.remove("hide");
+        unavail.classList.remove("hide");
+        fill_stat('maintain', '');
+        maintain.classList.add("disp");
     }
 }
 
-function isUp() {
-    //inverse of isDown, needed to switch back to rendering plots if broken.
-    let x = document.getElementsByClassName("plot");
-    avail.classList.remove("disp");
-    unavail.classList.add("disp");
-    for (i = 0; i < x.length; i++) {
-        x[i].classList.remove('placeholder');
-        x[i].innerHTML = '';
-        // x[i].classList.remove('placeholder');
-    }
+function call_plots(d) {
+    timeBar(d, 'WGen', 's1', self);
+    timeBar(d, 'WUse', 's2', self);
+    timeBar(d, 'bat%', 's3', batt_scale);
+    timeBar(d, 'bat%', 's4', self);
 }
 
-
-function callback(j, exist) {
-    //takes in completed json data 
-    data = j;
-    if (exist) { // if data have data, run plot code
-        isUp();
-        time_bar('s1', 'live', 's1');
-        time_bar('s2', 'live', 's2');
-        time_bar('s3', 'live', 's3');
-        batt.refresh(Math.round(Math.random()*100));
-        g1.refresh(Math.round(Math.random()*10));
-        g2.refresh(Math.round(Math.random()*50));
-        fill_stat('st1', Math.round(Math.random()*100));
-        fill_stat('st2', Math.round(Math.random()*100));
-        // Plotly.newPlot('s3', [make_trace('live', 'time', 's1'), make_trace('live', 'time', 's3'), make_trace('live', 'time', 's2')], {title:'Plot of e', colorway :['#456', '#EFE','#123'],barmode:'stack'}, config);
-    } else { // data ain't got no data, render is down view
-        isDown();
-    }
-}
-
-
-function make_trace(sub, x, y) {
-    //returns "dict" describing x and y traces
-    d = data[sub];
+function makeTrace(data, x, y, xfun, yfun) {
+    //returns object describing x and y traces
     var get_d = function(a, ele) { return a[ele] };
-    x_d = d.map(function(a) { return a[x] });
-    y_d = d.map(function(a) { return a[y] });
+    x_d = data.map(function(a) { return xfun(a[x]) });
+    y_d = data.map(function(a) { return yfun(a[y]) });
     return {
         x: x_d,
         y: y_d
     };
 }
 
-function time_bar(div, sub, stat) {
+function toDate(epoch) {
+    return new Date(epoch * 1000);
+}
+
+function self(a) {
+    return a;
+}
+
+function batt_scale(val) {
+    xMax = 100;
+    xMin = 0;
+
+    yMax = 100;
+    yMin = BatteryDischargeFloor;
+
+    percent = (val - yMin) / (yMax - yMin);
+    outputX = percent * (xMax - xMin) + xMin;
+    return outputX;
+}
+
+function timeBar(data, stat, id, yfun) {
     //Generate a bar graph for certain subcategory sub and statistic stat
-    t1 = make_trace(sub, 'time', stat);
+    // very generic; intended only for quick testing
+    t1 = makeTrace(data, 'time', stat, toDate, yfun);
     t1['type'] = 'bar';
-    Plotly.newPlot(div, [t1], { title: 'Plot of ' + stat }, config);
+    Plotly.newPlot(id, [t1], { title: 'Plot of ' + stat }, config);
 }
 
-function norm_gauge(id, max, config){
-    //makes a generic gauge
-    var d = config;
-    d['id'] = id;
-    d['max'] = max;
-    return d;
+function allDown() {
+    // buh bye webpage
+    availDown();
+    liveDown();
+    //TODO: replace plotly container div with something?
 }
 
-function fill_stat(id, stat) {
-    // auto-populate a <span> element with id "id" with the statistic "stat"
-    document.getElementById(id).innerHTML = stat;
+function doSomething() {
+    console.log("10 seconds");
+    setTimeout(doSomething, 10000);
 }
+
+// setTimeout(doSomething, 10000); // 10 second timer
