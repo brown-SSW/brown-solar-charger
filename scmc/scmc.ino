@@ -18,24 +18,12 @@ const byte LED_BUILTIN = 2; //esp32s have a blue light on pin 2, can be nice for
 
 boolean wifiAvailable = false;
 boolean timeAvailable = false;
-boolean mqttAvailable = false;
 
 const int8_t UTC_offset = -5;//EST
 Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);
 struct tm timeClock; //used for keeping track of what time it is (in EST not toggling daylight savings)
 
-IPAddress MQTTserver(10, 0, 0, 129);
-int MQTTport = 1883;
-
-WiFiClient wifiClient;
-PubSubClient MQTTclient(wifiClient);
-int mqttArrayCounter = 0;
-byte mqttBuffer[100] = {0};
-
 CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
-
-unsigned long lastPublishMillis = 0; //milliseconds
-
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -49,8 +37,6 @@ void setup() {
     Serial.println("WARNING: WIFI NOT CONNECTING");
   }
 
-  setupMQTT();
-
   digitalWrite(LED_BUILTIN, LOW);  //one time setup finished
 }
 
@@ -58,36 +44,6 @@ void loop() {
   //main loop code! runs continuously
   wifiAvailable = checkWifiConnection();
   timeAvailable = updateTimeClock();
-  mqttAvailable = checkMQTTConnection();
-  MQTTclient.loop();
-
-  if (millis() - lastPublishMillis > 10000) {
-    lastPublishMillis = millis();
-    if (mqttAvailable) {
-      publishMQTTMessage();
-    }
-  }
 
   vTaskDelay(20);
-}
-
-void publishMQTTMessage() {
-  mqttArrayCounter = 0;
-  mqttSendIn(-12345);
-  mqttSendFl(5002.4 / .5);
-  MQTTclient.publish("dataTopic", mqttBuffer, mqttArrayCounter);
-}
-
-void subscribeMQTT() {
-  MQTTclient.subscribe("inTopic");
-}
-
-void MQTTcallback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("MQTT RECV: ");
-  Serial.print(topic);
-  Serial.print(": ");
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
 }
