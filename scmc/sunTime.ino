@@ -19,6 +19,7 @@ boolean updateTimeClock() {
     report = false;
     Serial.println("Failed to obtain time");
   } else {
+    time(&timestampEpoch);
     report = true;
   }
   return report;

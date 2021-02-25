@@ -12,18 +12,31 @@
 #include <PubSubClient.h> //https://github.com/knolleary/pubsubclient
 #include <ESP_Mail_Client.h> //library for sending email https://github.com/mobizt/ESP-Mail-Client
 #include <Dusk2Dawn.h> //sunrise sunset lookup https://github.com/dmkishi/Dusk2Dawn remove "static" from library as needed to fix compiling error
+#include <Firebase_ESP_Client.h> //firebase library https://github.com/mobizt/Firebase-ESP-Client
 
 #include "secret.h" //passwords and things we don't want public can be kept in this file since it doesn't upload to github (in gitignore) The file should be kept somewhat secure.
 const byte LED_BUILTIN = 2; //esp32s have a blue light on pin 2, can be nice for status and debugging
 
 boolean wifiAvailable = false;
 boolean timeAvailable = false;
+boolean firebaseAvailable = false;
 
 const int8_t UTC_offset = -5;//EST
 Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);
 struct tm timeClock; //used for keeping track of what time it is (in EST not toggling daylight savings)
+time_t timestampEpoch;
 
-CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
+//live data
+float liveGenW = 0.0;
+float liveUseW = 0.0;
+float liveBatPer = 0.0;
+boolean available = false;
+int cumulativeWhGen = 1;
+
+unsigned long lastLiveUpdateMillis = 0;
+long lastLiveUpdateMillisInterval = 30000;
+
+//CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -36,6 +49,7 @@ void setup() {
   if (!wifiAvailable) {
     Serial.println("WARNING: WIFI NOT CONNECTING");
   }
+  firebaseAvailable = setupFirebase();
 
   digitalWrite(LED_BUILTIN, LOW);  //one time setup finished
 }
@@ -44,6 +58,17 @@ void loop() {
   //main loop code! runs continuously
   wifiAvailable = checkWifiConnection();
   timeAvailable = updateTimeClock();
+
+  if (millis() - lastLiveUpdateMillis > lastLiveUpdateMillisInterval) {
+    firebaseSendLiveData();
+
+    liveGenW = random(0, 300);
+    liveUseW = random(5, 500);
+    liveBatPer = random(50, 100);
+    available = true;
+
+    lastLiveUpdateMillis = millis();
+  }
 
   vTaskDelay(20);
 }
