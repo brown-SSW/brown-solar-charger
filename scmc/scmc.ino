@@ -36,6 +36,9 @@ int cumulativeWhGen = 1;
 unsigned long lastLiveUpdateMillis = 0;
 long lastLiveUpdateMillisInterval = 30000;
 
+unsigned long lastDayDataUpdateMillis = 0;
+long lastDayDataUpdateMillisInterval = 30000;
+
 //CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
 
 void setup() {
@@ -59,16 +62,29 @@ void loop() {
   wifiAvailable = checkWifiConnection();
   timeAvailable = updateTimeClock();
 
+  runLiveUpdate();
+  runDayDataUpdate();
+
+  vTaskDelay(20);
+}
+
+
+
+void runLiveUpdate() {
   if (millis() - lastLiveUpdateMillis > lastLiveUpdateMillisInterval) {
     firebaseSendLiveData();
+    lastLiveUpdateMillis = millis();
+  }
+}
+void runDayDataUpdate() {
+
+  if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
+    firebaseSendDayData();
 
     liveGenW = random(0, 300);
     liveUseW = random(5, 500);
     liveBatPer = random(50, 100);
-    available = true;
 
-    lastLiveUpdateMillis = millis();
+    lastDayDataUpdateMillis = millis();
   }
-
-  vTaskDelay(20);
 }
