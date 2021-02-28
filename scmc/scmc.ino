@@ -33,11 +33,17 @@ float liveBatPer = 0.0;
 boolean available = false;
 int cumulativeWhGen = 1;
 
+float dayUseWh = 0.0;
+float dayGenWh = 0.0;
+
 unsigned long lastLiveUpdateMillis = 0;
 long lastLiveUpdateMillisInterval = 30000;
 
 unsigned long lastDayDataUpdateMillis = 0;
 long lastDayDataUpdateMillisInterval = 30000;
+
+unsigned long lastMonthDataUpdateMillis = 0;
+long lastMonthDataUpdateMillisInterval = 10000;
 
 //CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
 
@@ -64,6 +70,7 @@ void loop() {
 
   runLiveUpdate();
   runDayDataUpdate();
+  runMonthDataUpdate();
 
   vTaskDelay(20);
 }
@@ -72,19 +79,30 @@ void loop() {
 
 void runLiveUpdate() {
   if (millis() - lastLiveUpdateMillis > lastLiveUpdateMillisInterval) {
-    firebaseSendLiveData();
     lastLiveUpdateMillis = millis();
+    firebaseSendLiveData();
   }
 }
 void runDayDataUpdate() {
 
   if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
+    lastDayDataUpdateMillis = millis();
     firebaseSendDayData();
 
     liveGenW = random(0, 300);
     liveUseW = random(5, 500);
     liveBatPer = random(50, 100);
+  }
+}
 
-    lastDayDataUpdateMillis = millis();
+void runMonthDataUpdate() {
+
+  if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {
+    lastMonthDataUpdateMillis = millis();
+    firebaseSendMonthData();
+
+    dayGenWh = random(1400, 2000);
+    dayUseWh = random(500, 3000);
+
   }
 }

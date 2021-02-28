@@ -28,9 +28,6 @@ boolean firebaseSendLiveData() {
     return true;
   }
   else  {
-    //    Serial.println("FIREBASE FAILED");
-    //    Serial.println("REASON: " + fbdo.errorReason());
-    //    Serial.println("------------------------------------");
     return false;
   }
 }
@@ -43,6 +40,20 @@ boolean firebaseSendDayData() {
   fjson.set("time", int(timestampEpoch));
 
   if (Firebase.RTDB.pushJSON(&fbdo, "data/dayData", &fjson)) {
+    return true;
+  }
+  else {
+    return false;
+  }
+}
+
+boolean firebaseSendMonthData() {
+  fjson.clear();
+  fjson.set("WhGen", dayGenWh);
+  fjson.set("WhUse", dayUseWh);
+  fjson.set("time", int(timestampEpoch));
+
+  if (Firebase.RTDB.pushJSON(&fbdo, "data/monthData", &fjson)) {
     return true;
   }
   else {
