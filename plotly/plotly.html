@@ -22,7 +22,7 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
 <body>
     <h1>Plotly tech demo</h1>
     <p>this is a paragraph</p>
-    <p>Last updated <strong><span id='lastUpdate'></span></strong>.</p>
+    <p>Last updated <strong><span id='lastUpdate'></span></strong> ago.</p>
     <ul>
         <li>stat 1: <strong><span id="st1">0</span></strong> meters</li>
         <li>stat 2: <strong><span id="st2">0</span></strong> kJ</li>
@@ -41,8 +41,8 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
     <div id="s4" class='plot'></div>
     <script type="text/javascript">
     var batt = new JustGage(batt_lay);
-    var g1 = new JustGage(norm_gauge({'id':'g1', 'max':10, 'symbol':' Wh', 'label':'Generated'}));
-    var g2 = new JustGage(norm_gauge({'id':'g2', 'max':10, 'symbol':' Wh', 'label':'Used'}));
+    var g1 = new JustGage(norm_gauge({'id':'g1', 'max':10, 'symbol':' W', 'label':'Generated'}));
+    var g2 = new JustGage(norm_gauge({'id':'g2', 'max':10, 'symbol':' W', 'label':'Used'}));
     let avail = document.getElementById('avail');
     let unavail = document.getElementById('unavail');
     let maintain = document.getElementById('maintain');
