@@ -25,7 +25,7 @@ div.placeholder p.error {
 
 div.dials {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 2fr;
 }
 
 div.status {
@@ -58,4 +58,9 @@ div.status {
 
 #maintain {
     background: '#000000';
+}
+@media only screen and (max-width: 641px){
+  div.dials {
+    display: initial;
+  }
 }

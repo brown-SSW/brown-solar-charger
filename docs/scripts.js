@@ -8,7 +8,7 @@ const config = {
     responsive: true // Makes plot responsive to window size
 };
 const layout = {
-
+    
 };
 const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
 const batt_lay = {
@@ -30,7 +30,7 @@ const batt_lay = {
     levelColorsGradient: false,
     // gaugeColor: "#00000000", // set transparency
     levelColors: levelSectors(section_colors,[1,4,5]),
-    // relativeGaugeSize: true
+    relativeGaugeSize: true
 };
 
 function levelSectors(colors, frac) {
@@ -62,19 +62,19 @@ const g_lay = {
     levelColors: ["#00bec4"],
     labelFontColor: '#1f2120',
     valueFontColor: '#1f2120',
-
+    relativeGaugeSize: true,
 
 };
 
 var DialGenMax;
 var DialUseMax;
 var BatteryDischargeFloor;
-var lastUpdate = {
-    'settings': null,
-    'liveData': null,
-    'dayData': null,
-    'monthData': null
-};
+// var lastUpdate = {
+//     'settings': null,
+//     'liveData': null,
+//     'dayData': null,
+//     'monthData': null
+// };
 
 // let data;
 // https://github.com/bernii/gauge.js/
@@ -138,6 +138,27 @@ function liveUp(d) {
     g2.refresh(Math.round(Math.random() * DialUseMax), DialUseMax);
     fill_stat('st1', Math.round(Math.random() * 100));
     fill_stat('st2', Math.round(Math.random() * 100));
+    since = new Date(Math.abs(new Date() - toDate(d.time)));
+    fill_stat('lastUpdate', dateSince(since));
+}
+
+function dateSince(date){
+    str = '';
+    h = date.getHours();
+    m = date.getMinutes();
+    if (h >= 1){
+        if (h > 1){
+            str += h + ' hours, ';
+        }else{
+            str += h + ' hour, ';
+        }
+    }
+    if (m > 1 || m == 0){
+        str += m + ' minutes';
+    }else{
+        str += m + ' minute';
+    }
+    return str;
 }
 
 function availUp() {
@@ -163,8 +184,7 @@ function call_settings(d) {
     DialGenMax = d.DialGenMax;
     DialUseMax = d.DialUseMax;
     BatteryDischargeFloor = d.BatteryDischargeFloor;
-    lastUpdate.settings = new Date();
-    fill_stat('lastUpdate', lastUpdate.settings);
+    // lastUpdate.settings = new Date();
     if (!(message == 'null')) {
         avail.classList.add("hide");
         unavail.classList.add("hide");
@@ -178,15 +198,23 @@ function call_settings(d) {
     }
 }
 
-function call_plots(d) {
-    timeBar(d, 'WGen', 's1', self);
-    timeBar(d, 'WUse', 's2', self);
-    timeBar(d, 'bat%', 's3', batt_scale);
-    timeBar(d, 'bat%', 's4', self);
+function call_plots(din) {
+    var dout = [];
+    for(var i in din){
+        // console.log(new Date(din[i].time*1000));
+        dout.push(din[i]);
+
+    }
+    // console.log(dout);
+    timeBar(dout, 'WGen', 's1', self);
+    timeLine(dout, 'WUse', 's2', self,false,'');
+    timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
+    timeBar(dout, 'bat%', 's4', self);
 }
 
 function makeTrace(data, x, y, xfun, yfun) {
     //returns object describing x and y traces
+    // console.log(data);
     var get_d = function(a, ele) { return a[ele] };
     x_d = data.map(function(a) { return xfun(a[x]) });
     y_d = data.map(function(a) { return yfun(a[y]) });
@@ -223,6 +251,16 @@ function timeBar(data, stat, id, yfun) {
     t1['type'] = 'bar';
     Plotly.newPlot(id, [t1], { title: 'Plot of ' + stat }, config);
 }
+function timeLine(data, stat, id, yfun, fill, fillType) {
+    //Generate a bar graph for certain subcategory sub and statistic stat
+    // very generic; intended only for quick testing
+    t1 = makeTrace(data, 'time', stat, toDate, yfun);
+    t1['type'] = 'lines';
+    if (fill){
+        t1['fill'] = fillType;
+    }
+    Plotly.newPlot(id, [t1], { title: 'Plot of ' + stat }, config);
+}
 
 function allDown() {
     // buh bye webpage
@@ -237,3 +275,11 @@ function doSomething() {
 }
 
 // setTimeout(doSomething, 10000); // 10 second timer
+
+function combineConfig(obj, cfig) {
+    //makes a generic obj w/ defined params
+    var keys = Object.keys(obj);
+    var d = cfig;
+    keys.forEach(function(val) { d[val] = obj[val] });
+    return d;
+}
