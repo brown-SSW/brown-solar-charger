@@ -201,8 +201,9 @@ function liveUp(d) {
     fill_stat('st1', Math.round(Math.random() * 100));
     fill_stat('st2', Math.round(Math.random() * 100));
     now = new Date();
+    now_off = now.getTime() + (now.getTimezoneOffset()*60*1000);
     console.log(now.getTime());
-    since = new Date(Math.abs(now.getTime()-(d.time*1000)));
+    since = new Date(Math.abs(now_off-(d.time*1000)));
     fill_stat('lastUpdate', dateSince(since));
 }
 
