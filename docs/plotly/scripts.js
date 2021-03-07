@@ -26,7 +26,8 @@ const layout = {
 };
 const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
 const gen_color = "#21bf27";
-const use_color = "#00bec4";
+const use_color = "#F4AC45"; //"#00bec4";
+const batt_color = "#00bec4";
 const batt_lay = {
     id: "battery", // the id of the html element
     // title: "Battery Capacity",
@@ -118,14 +119,10 @@ const w_lay = {
         title: 'Power (W)'
     },
     xaxis: {
-        title: 'Time'
+        // title: 'Time'
     },
     showlegend: true,
-    legend: {
-        x: 1,
-        xanchor: 'right',
-        y: 1
-    }
+    legend: { xanchor: 'center', x: 0.5, orientation: 'h' } 
 
 };
 const wUse_trace = {
@@ -166,17 +163,43 @@ const wh_lay = {
     yaxis: {
         title: 'Energy (Wh)'
     },
+    // margin:{
+    //     l:0,
+    //     r:0,
+    //     t:0,
+    //     b:0,
+    //     pad: 40,
+    // },
+    // autosize: true,
+    showlegend: true,
+    legend: { xanchor: 'center', x: 0.5, orientation: 'h' } 
+};
+
+
+const batt_trace = {
+    fill: 'tozeroy',
+    type: 'scatter',
+    mode: 'lines',
+    name: 'Battery Capacity',
+    hovertemplate: '%{y:.2f} %',
+    line: {
+        color: batt_color,
+        width: 2
+    },
+
+}
+const battplot_lay = {
+    title: 'Battery Capacity - Daily',
+    yaxis: {
+        title: 'Capacity (%)',
+        fixedrange: true,
+        range: [0, 100]
+    },
     xaxis: {
         title: 'Time'
     },
-    showlegend: true,
-    legend: {
-        x: 1,
-        xanchor: 'right',
-        y: 1
-    }
+    showlegend: false,
 };
-
 
 // data loading
 // ah yes creative variable names
@@ -212,7 +235,7 @@ function norm_gauge(obj) {
     // var d = g_lay;
     // keys.forEach(function(val) { d[val] = obj[val] });
     // return d;
-    return combineConfig(obj,g_lay);
+    return combineConfig(obj, g_lay);
 }
 
 function fill_stat(id, stat) {
@@ -238,12 +261,12 @@ function liveUp(d) {
     high = 10 - low - mid;
     sectors = { levelColors: levelSectors(section_colors, [low, mid, high]) };
     // batt.update();
-    batt.refresh(batt_scale(d['bat%'], BatteryDischargeFloor));
+    batt.refresh(Math.round(batt_scale(d['bat%'])));
     g1.refresh(d['WGen'], DialGenMax);
     g2.refresh(d['WUse'], DialUseMax);
     // still populate statistics with random values since ain't got no other values to play with.
     fill_stat('wh-cumu', Math.round(d.cumulativeWhGen));
-    fill_stat('co2-cumu', Math.round(Co2PerWh*d.cumulativeWhGen));
+    fill_stat('co2-cumu', Math.round(Co2PerWh * d.cumulativeWhGen));
     now = new Date();
     now_off = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
     // console.log(now.getTime());
@@ -288,6 +311,7 @@ function liveDown() {
     fill_stat('wh-cumu', 'N/A');
     fill_stat('co2-cumu', 'N/A');
 }
+
 function call_settings(d) {
     var message = d.websiteErrorMessage;
     DialGenMax = d.DialGenMax;
@@ -319,7 +343,8 @@ function call_plots_day(din) {
     }
     // console.log(dout);
     // timeBar(dout, 'WGen', 's1', self);
-    Plotly.newPlot('s1', [combineConfig(makeTrace(dout, 'time', 'WUse', toDate, self), wUse_trace),combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self), wGen_trace)], combineConfig(w_lay, layout), config);
+    Plotly.newPlot('power-daily', [combineConfig(makeTrace(dout, 'time', 'WUse', toDate, self), wUse_trace), combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self), wGen_trace)], combineConfig(w_lay, layout), config);
+    Plotly.newPlot('batt-daily', [combineConfig(makeTrace(dout, 'time', 'bat%', toDate, batt_scale), batt_trace)], combineConfig(battplot_lay, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
@@ -334,7 +359,7 @@ function call_plots_month(din) {
     }
     // console.log(dout);
     // timeBar(dout, 'WGen', 's1', self);
-    Plotly.newPlot('s2', [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self), whGen_trace),combineConfig(makeTrace(dout, 'time', 'WhUse', toDate, self), whUse_trace)], combineConfig(wh_lay, layout), config);
+    Plotly.newPlot('energy-monthly', [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self), whGen_trace), combineConfig(makeTrace(dout, 'time', 'WhUse', toDate, self), whUse_trace)], combineConfig(wh_lay, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
@@ -409,7 +434,7 @@ function combineConfig(obj, cfig) {
     //makes a generic obj w/ defined params
     // works recursively for nested objects yay :sob:
     var keys = Object.keys(obj);
-    var d = Object.assign({},cfig);
+    var d = Object.assign({}, cfig);
     // keys.forEach(function(val) { d[val] = obj[val] });
     for (var k in obj) {
         if (typeof obj[k] == 'object' && cfig[k] != null) {
