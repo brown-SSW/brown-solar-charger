@@ -8,23 +8,25 @@ const config = {
     responsive: true // Makes plot responsive to window size
 };
 const layout = {
-  //  margin: {
-  //   l: 0,
-  //   r: 0,
-  //   b: 0,
-  //   t: 0,
-  //   pad: 0
-  // },
-  hovermode: 'x unified',
-  xaxis: {
-    showgrid: false,
-    zeroline: false
-  },
-  yaxis: {
-    showline: false
-  }
+    //  margin: {
+    //   l: 0,
+    //   r: 0,
+    //   b: 0,
+    //   t: 0,
+    //   pad: 0
+    // },
+    hovermode: 'x unified',
+    xaxis: {
+        showgrid: false,
+        zeroline: false
+    },
+    yaxis: {
+        showline: false
+    }
 };
 const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
+const gen_color = "#21bf27";
+const use_color = "#00bec4";
 const batt_lay = {
     id: "battery", // the id of the html element
     // title: "Battery Capacity",
@@ -43,7 +45,7 @@ const batt_lay = {
     noGradient: true,
     levelColorsGradient: false,
     // gaugeColor: "#00000000", // set transparency
-    levelColors: levelSectors(section_colors,[2,3,5]), // may need to change to make adaptive to LowBatteryThreshold settings const
+    levelColors: levelSectors(section_colors, [2, 3, 5]), // may need to change to make adaptive to LowBatteryThreshold settings const
     relativeGaugeSize: true
 };
 
@@ -73,7 +75,7 @@ const g_lay = {
         stroke_width: 3,
         stroke_linecap: 'round'
     },
-    levelColors: ["#00bec4"],
+    // levelColors: ["#00bec4"],
     labelFontColor: '#1f2120',
     valueFontColor: '#1f2120',
     relativeGaugeSize: true,
@@ -83,6 +85,8 @@ const g_lay = {
 var DialGenMax;
 var DialUseMax;
 var BatteryDischargeFloor;
+var LowBatteryThreshold;
+var MidBatteryThreshold;
 // var lastUpdate = {
 //     'settings': null,
 //     'liveData': null,
@@ -100,43 +104,76 @@ const wGen_trace = {
     fill: 'tozeroy',
     type: 'scatter',
     mode: 'lines+markers',
-    name: 'Power Produced',
+    name: 'Power Generated',
     hovertemplate: '%{y:.2f} W',
     line: {
-        color: '#21bf27',
+        color: gen_color,
         width: 2
     }
 }
-const wGen_lay = {
-    title: 'Power Produced',
+const w_lay = {
+    title: 'Power Generated & Used - Daily',
     yaxis: {
-        title: 'Power Produced (W)'
+        title: 'Power (W)'
     },
     xaxis: {
         title: 'Time'
     },
+    showlegend: true,
+    legend: {
+        x: 1,
+        xanchor: 'right',
+        y: 1
+    }
 
 };
+const wUse_trace = {
+    fill: 'tonexty',
+    type: 'scatter',
+    mode: 'lines+markers',
+    name: 'Power Used',
+    hovertemplate: '%{y:.2f} W',
+    line: {
+        color: use_color,
+        width: 2
+    }
+}
 const whGen_trace = {
-    fill: 'tozeroy',
+    // fill: 'tozeroy',
     type: 'bar',
     // mode: 'lines+markers',
-    name: 'Energy Produced',
+    name: 'Energy Generated',
     hovertemplate: '%{y:.2f} Wh',
     marker: {
-        color: '#21bf27',
+        color: gen_color,
         // width: 2
     }
 }
-const whGen_lay = {
-    title: 'Energy Produced',
+const whUse_trace = {
+    // fill: 'tozeroy',
+    type: 'bar',
+    // mode: 'lines+markers',
+    name: 'Energy Used',
+    hovertemplate: '%{y:.2f} Wh',
+    marker: {
+        color: use_color,
+        // width: 2
+    }
+}
+const wh_lay = {
+    title: 'Energy Generated & Used - Monthly',
     yaxis: {
-        title: 'Energy Produced (Wh)'
+        title: 'Energy (Wh)'
     },
     xaxis: {
         title: 'Time'
     },
-
+    showlegend: true,
+    legend: {
+        x: 1,
+        xanchor: 'right',
+        y: 1
+    }
 };
 
 
@@ -170,10 +207,11 @@ function loadJSON(sub, cb, time) {
 function norm_gauge(obj) {
     //makes a generic gauge w/ defined params
     // id, max are required
-    var keys = Object.keys(obj);
-    var d = g_lay;
-    keys.forEach(function(val) { d[val] = obj[val] });
-    return d;
+    // var keys = Object.keys(obj);
+    // var d = g_lay;
+    // keys.forEach(function(val) { d[val] = obj[val] });
+    // return d;
+    return combineConfig(obj,g_lay);
 }
 
 function fill_stat(id, stat) {
@@ -194,6 +232,11 @@ function call_stats(d) {
 
 function liveUp(d) {
     // refresh values
+    low = Math.round(LowBatteryThreshold / 10);
+    mid = Math.round(MidBatteryThreshold / 10);
+    high = 10 - low - mid;
+    sectors = { levelColors: levelSectors(section_colors, [low, mid, high]) };
+    // batt.update();
     batt.refresh(batt_scale(d['bat%'], BatteryDischargeFloor));
     g1.refresh(d['WGen'], DialGenMax);
     g2.refresh(d['WUse'], DialUseMax);
@@ -201,27 +244,27 @@ function liveUp(d) {
     fill_stat('st1', Math.round(Math.random() * 100));
     fill_stat('st2', Math.round(Math.random() * 100));
     now = new Date();
-    now_off = now.getTime() + (now.getTimezoneOffset()*60*1000);
-    console.log(now.getTime());
-    since = new Date(Math.abs(now_off-(d.time*1000)));
+    now_off = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
+    // console.log(now.getTime());
+    since = new Date(Math.abs(now_off - (d.time * 1000)));
     fill_stat('lastUpdate', dateSince(since));
 }
 
-function dateSince(date){
+function dateSince(date) {
     // let's hope the station won't be down for more than a day.
     str = '';
     h = date.getHours();
     m = date.getMinutes();
-    if (h >= 1){
-        if (h > 1){
+    if (h >= 1) {
+        if (h > 1) {
             str += h + ' hours, ';
-        }else{
+        } else {
             str += h + ' hour, ';
         }
     }
-    if (m > 1 || m == 0){
+    if (m > 1 || m == 0) {
         str += m + ' minutes';
-    }else{
+    } else {
         str += m + ' minute';
     }
     return str;
@@ -250,6 +293,8 @@ function call_settings(d) {
     DialGenMax = d.DialGenMax;
     DialUseMax = d.DialUseMax;
     BatteryDischargeFloor = d.BatteryDischargeFloor;
+    LowBatteryThreshold = d.LowBatteryThreshold;
+    MidBatteryThreshold = d.MidBatteryThreshold;
     // lastUpdate.settings = new Date();
     if (!(message == 'null')) {
         avail.classList.add("hide");
@@ -266,28 +311,29 @@ function call_settings(d) {
 
 function call_plots_day(din) {
     var dout = [];
-    for(var i in din){
+    for (var i in din) {
         // console.log(new Date(din[i].time*1000));
         dout.push(din[i]);
 
     }
     // console.log(dout);
     // timeBar(dout, 'WGen', 's1', self);
-    Plotly.newPlot('s1', [combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self),wGen_trace)], combineConfig(wGen_lay,layout), config);
+    Plotly.newPlot('s1', [combineConfig(makeTrace(dout, 'time', 'WUse', toDate, self), wUse_trace),combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self), wGen_trace)], combineConfig(w_lay, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
 }
+
 function call_plots_month(din) {
     var dout = [];
-    for(var i in din){
+    for (var i in din) {
         // console.log(new Date(din[i].time*1000));
         dout.push(din[i]);
 
     }
     // console.log(dout);
     // timeBar(dout, 'WGen', 's1', self);
-    Plotly.newPlot('s2', [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self),whGen_trace)], combineConfig(whGen_lay,layout), config);
+    Plotly.newPlot('s2', [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self), whGen_trace),combineConfig(makeTrace(dout, 'time', 'WhUse', toDate, self), whUse_trace)], combineConfig(wh_lay, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
@@ -332,12 +378,13 @@ function timeBar(data, stat, id, yfun) {
     t1['type'] = 'bar';
     Plotly.newPlot(id, [t1], { title: 'Plot of ' + stat }, config);
 }
+
 function timeLine(data, stat, id, yfun, fill, fillType) {
     //Generate a bar graph for certain subcategory sub and statistic stat
     // very generic; intended only for quick testing
     t1 = makeTrace(data, 'time', stat, toDate, yfun);
     t1['type'] = 'lines';
-    if (fill){
+    if (fill) {
         t1['fill'] = fillType;
     }
     Plotly.newPlot(id, [t1], { title: 'Plot of ' + stat }, config);
@@ -361,12 +408,12 @@ function combineConfig(obj, cfig) {
     //makes a generic obj w/ defined params
     // works recursively for nested objects yay :sob:
     var keys = Object.keys(obj);
-    var d = cfig;
+    var d = Object.assign({},cfig);
     // keys.forEach(function(val) { d[val] = obj[val] });
-    for(var k in obj){
-        if(typeof obj[k] == 'object' && cfig[k] != null){
+    for (var k in obj) {
+        if (typeof obj[k] == 'object' && cfig[k] != null) {
             d[k] = combineConfig(obj[k], cfig[k]);
-        } else{
+        } else {
             d[k] = obj[k];
         }
     }

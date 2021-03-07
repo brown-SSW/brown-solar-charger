@@ -41,8 +41,8 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
     <div id="s4" class='plot'></div>
     <script type="text/javascript">
     var batt = new JustGage(batt_lay);
-    var g1 = new JustGage(norm_gauge({'id':'g1', 'max':10, 'symbol':' W', 'label':'Generated'}));
-    var g2 = new JustGage(norm_gauge({'id':'g2', 'max':10, 'symbol':' W', 'label':'Used'}));
+    var g1 = new JustGage(norm_gauge({'id':'g1', 'max':10, 'symbol':' W', 'label':'Generated','levelColors':[gen_color]}));
+    var g2 = new JustGage(norm_gauge({'id':'g2', 'max':10, 'symbol':' W', 'label':'Used','levelColors':[use_color]}));
     let avail = document.getElementById('avail');
     let unavail = document.getElementById('unavail');
     let maintain = document.getElementById('maintain');
