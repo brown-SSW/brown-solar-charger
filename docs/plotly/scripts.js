@@ -157,10 +157,10 @@ function loadJSON(sub, cb, time) {
             if (this.status == 200) {
                 var json = JSON.parse(http.responseText);
                 cb(json);
-                // setTimeout(loadJSON, time.up, sub, cb, time);
+                setTimeout(loadJSON, time.up, sub, cb, time);
             } else {
                 allDown();
-                // setTimeout(loadJSON, time.down, sub, cb, time);
+                setTimeout(loadJSON, time.down, sub, cb, time);
             }
         }
     };
