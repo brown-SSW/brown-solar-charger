@@ -8,7 +8,21 @@ const config = {
     responsive: true // Makes plot responsive to window size
 };
 const layout = {
-    
+  //  margin: {
+  //   l: 0,
+  //   r: 0,
+  //   b: 0,
+  //   t: 0,
+  //   pad: 0
+  // },
+  hovermode: 'x unified',
+  xaxis: {
+    showgrid: false,
+    zeroline: false
+  },
+  yaxis: {
+    showline: false
+  }
 };
 const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
 const batt_lay = {
@@ -79,6 +93,53 @@ var BatteryDischargeFloor;
 // let data;
 // https://github.com/bernii/gauge.js/
 // https://github.com/toorshia/justgage
+const fill_generic = {
+
+}
+const wGen_trace = {
+    fill: 'tozeroy',
+    type: 'scatter',
+    mode: 'lines+markers',
+    name: 'Power Produced',
+    hovertemplate: '%{y:.2f} W',
+    line: {
+        color: '#21bf27',
+        width: 2
+    }
+}
+const wGen_lay = {
+    title: 'Power Produced',
+    yaxis: {
+        title: 'Power Produced (W)'
+    },
+    xaxis: {
+        title: 'Time'
+    },
+
+};
+const whGen_trace = {
+    fill: 'tozeroy',
+    type: 'bar',
+    // mode: 'lines+markers',
+    name: 'Energy Produced',
+    hovertemplate: '%{y:.2f} Wh',
+    marker: {
+        color: '#21bf27',
+        // width: 2
+    }
+}
+const whGen_lay = {
+    title: 'Energy Produced',
+    yaxis: {
+        title: 'Energy Produced (Wh)'
+    },
+    xaxis: {
+        title: 'Time'
+    },
+
+};
+
+
 // data loading
 // ah yes creative variable names
 function loadJSON(sub, cb, time) {
@@ -96,10 +157,10 @@ function loadJSON(sub, cb, time) {
             if (this.status == 200) {
                 var json = JSON.parse(http.responseText);
                 cb(json);
-                setTimeout(loadJSON, time.up, sub, cb, time);
+                // setTimeout(loadJSON, time.up, sub, cb, time);
             } else {
                 allDown();
-                setTimeout(loadJSON, time.down, sub, cb, time);
+                // setTimeout(loadJSON, time.down, sub, cb, time);
             }
         }
     };
@@ -132,10 +193,11 @@ function call_stats(d) {
 }
 
 function liveUp(d) {
-    // uses math.random values because we don't have actual values to play with
-    batt.refresh(batt_scale(Math.round(Math.random() * 100), BatteryDischargeFloor));
-    g1.refresh(Math.round(Math.random() * DialGenMax), DialGenMax);
-    g2.refresh(Math.round(Math.random() * DialUseMax), DialUseMax);
+    // refresh values
+    batt.refresh(batt_scale(d['bat%'], BatteryDischargeFloor));
+    g1.refresh(d['WGen'], DialGenMax);
+    g2.refresh(d['WUse'], DialUseMax);
+    // still populate statistics with random values since ain't got no other values to play with.
     fill_stat('st1', Math.round(Math.random() * 100));
     fill_stat('st2', Math.round(Math.random() * 100));
     since = new Date(Math.abs(new Date() - toDate(d.time)));
@@ -143,6 +205,7 @@ function liveUp(d) {
 }
 
 function dateSince(date){
+    // let's hope the station won't be down for more than a day.
     str = '';
     h = date.getHours();
     m = date.getMinutes();
@@ -198,7 +261,7 @@ function call_settings(d) {
     }
 }
 
-function call_plots(din) {
+function call_plots_day(din) {
     var dout = [];
     for(var i in din){
         // console.log(new Date(din[i].time*1000));
@@ -206,10 +269,25 @@ function call_plots(din) {
 
     }
     // console.log(dout);
-    timeBar(dout, 'WGen', 's1', self);
-    timeLine(dout, 'WUse', 's2', self,false,'');
-    timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
-    timeBar(dout, 'bat%', 's4', self);
+    // timeBar(dout, 'WGen', 's1', self);
+    Plotly.newPlot('s1', [combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self),wGen_trace)], combineConfig(wGen_lay,layout), config);
+    // timeLine(dout, 'WUse', 's2', self,false,'');
+    // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
+    // timeBar(dout, 'bat%', 's4', self);
+}
+function call_plots_month(din) {
+    var dout = [];
+    for(var i in din){
+        // console.log(new Date(din[i].time*1000));
+        dout.push(din[i]);
+
+    }
+    // console.log(dout);
+    // timeBar(dout, 'WGen', 's1', self);
+    Plotly.newPlot('s2', [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self),whGen_trace)], combineConfig(whGen_lay,layout), config);
+    // timeLine(dout, 'WUse', 's2', self,false,'');
+    // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
+    // timeBar(dout, 'bat%', 's4', self);
 }
 
 function makeTrace(data, x, y, xfun, yfun) {
@@ -278,8 +356,16 @@ function doSomething() {
 
 function combineConfig(obj, cfig) {
     //makes a generic obj w/ defined params
+    // works recursively for nested objects yay :sob:
     var keys = Object.keys(obj);
     var d = cfig;
-    keys.forEach(function(val) { d[val] = obj[val] });
+    // keys.forEach(function(val) { d[val] = obj[val] });
+    for(var k in obj){
+        if(typeof obj[k] == 'object' && cfig[k] != null){
+            d[k] = combineConfig(obj[k], cfig[k]);
+        } else{
+            d[k] = obj[k];
+        }
+    }
     return d;
 }

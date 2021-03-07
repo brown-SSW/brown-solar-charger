@@ -51,7 +51,8 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
     // loadJSON('data/liveData',call_stats, {'up':30*1000, 'down':5*1000});
     // loadJSON('data/dayData',call_plots, {'up':30*1000, 'down':5*1000});
     setTimeout(loadJSON, 10, 'data/liveData', call_stats, { 'up': 30 * 1000, 'down': 5 * 1000 });
-    setTimeout(loadJSON, 10, 'data/dayData', call_plots, { 'up': 30 * 1000, 'down': 5 * 1000 });
+    setTimeout(loadJSON, 10, 'data/dayData', call_plots_day, { 'up': 30 * 1000, 'down': 5 * 1000 });
+    setTimeout(loadJSON, 10, 'data/monthData', call_plots_month, { 'up': 30 * 1000, 'down': 5 * 1000 });
     </script>
 </body>
 
