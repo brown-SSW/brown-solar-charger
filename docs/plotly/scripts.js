@@ -87,6 +87,7 @@ var DialUseMax;
 var BatteryDischargeFloor;
 var LowBatteryThreshold;
 var MidBatteryThreshold;
+var Co2PerWh;
 // var lastUpdate = {
 //     'settings': null,
 //     'liveData': null,
@@ -241,8 +242,8 @@ function liveUp(d) {
     g1.refresh(d['WGen'], DialGenMax);
     g2.refresh(d['WUse'], DialUseMax);
     // still populate statistics with random values since ain't got no other values to play with.
-    fill_stat('st1', Math.round(Math.random() * 100));
-    fill_stat('st2', Math.round(Math.random() * 100));
+    fill_stat('wh-cumu', Math.round(d.cumulativeWhGen));
+    fill_stat('co2-cumu', Math.round(Co2PerWh*d.cumulativeWhGen));
     now = new Date();
     now_off = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
     // console.log(now.getTime());
@@ -284,10 +285,9 @@ function liveDown() {
     batt.refresh(0);
     g1.refresh(0);
     g2.refresh(0);
-    fill_stat('st1', 'N/A');
-    fill_stat('st2', 'N/A');
+    fill_stat('wh-cumu', 'N/A');
+    fill_stat('co2-cumu', 'N/A');
 }
-
 function call_settings(d) {
     var message = d.websiteErrorMessage;
     DialGenMax = d.DialGenMax;
@@ -295,6 +295,7 @@ function call_settings(d) {
     BatteryDischargeFloor = d.BatteryDischargeFloor;
     LowBatteryThreshold = d.LowBatteryThreshold;
     MidBatteryThreshold = d.MidBatteryThreshold;
+    Co2PerWh = d.Co2PerWh;
     // lastUpdate.settings = new Date();
     if (!(message == 'null')) {
         avail.classList.add("hide");
