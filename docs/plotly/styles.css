@@ -29,7 +29,7 @@ div.dials {
 }
 
 div.status {
-    /*color: #FFF;*/
+    color: #FFF;
     width: 25%;
     margin: 1rem auto;
     text-align: center;
@@ -57,7 +57,7 @@ div.status {
 }
 
 #maintain {
-    background: '#000000';
+    background: #00bec4;
 }
 @media only screen and (max-width: 641px){
   div.dials {

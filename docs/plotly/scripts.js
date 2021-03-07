@@ -43,7 +43,7 @@ const batt_lay = {
     noGradient: true,
     levelColorsGradient: false,
     // gaugeColor: "#00000000", // set transparency
-    levelColors: levelSectors(section_colors,[1,4,5]),
+    levelColors: levelSectors(section_colors,[2,3,5]), // may need to change to make adaptive to LowBatteryThreshold settings const
     relativeGaugeSize: true
 };
 
@@ -200,7 +200,9 @@ function liveUp(d) {
     // still populate statistics with random values since ain't got no other values to play with.
     fill_stat('st1', Math.round(Math.random() * 100));
     fill_stat('st2', Math.round(Math.random() * 100));
-    since = new Date(Math.abs(new Date() - toDate(d.time)));
+    now = new Date();
+    console.log(now.getTime());
+    since = new Date(Math.abs(now.getTime()-(d.time*1000)));
     fill_stat('lastUpdate', dateSince(since));
 }
 
