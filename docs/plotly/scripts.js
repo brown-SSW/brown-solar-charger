@@ -21,7 +21,8 @@ const layout = {
         zeroline: false
     },
     yaxis: {
-        showline: false
+        showgrid: true,
+        showline: false,
     }
 };
 const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
@@ -99,13 +100,13 @@ var Co2PerWh;
 // let data;
 // https://github.com/bernii/gauge.js/
 // https://github.com/toorshia/justgage
-const fill_generic = {
+const plot_generic = {
 
 }
 const wGen_trace = {
     fill: 'tozeroy',
     type: 'scatter',
-    mode: 'lines+markers',
+    mode: 'lines',
     name: 'Power Generated',
     hovertemplate: '%{y:.2f} W',
     line: {
@@ -122,13 +123,13 @@ const w_lay = {
         // title: 'Time'
     },
     showlegend: true,
-    legend: { xanchor: 'center', x: 0.5, orientation: 'h' } 
+    legend: { xanchor: 'center', x: 0.5,y: 1.15, orientation: 'h',bgcolor: '#00000000', traceorder:'normal'} 
 
 };
 const wUse_trace = {
     fill: 'tonexty',
     type: 'scatter',
-    mode: 'lines+markers',
+    mode: 'lines',
     name: 'Power Used',
     hovertemplate: '%{y:.2f} W',
     line: {
@@ -172,7 +173,7 @@ const wh_lay = {
     // },
     // autosize: true,
     showlegend: true,
-    legend: { xanchor: 'center', x: 0.5, orientation: 'h' } 
+    legend: { xanchor: 'center', x: 0.5,y: 1.15, orientation: 'h',bgcolor: '#00000000', } 
 };
 
 
@@ -194,9 +195,6 @@ const battplot_lay = {
         title: 'Capacity (%)',
         fixedrange: true,
         range: [0, 100]
-    },
-    xaxis: {
-        title: 'Time'
     },
     showlegend: false,
 };
@@ -241,7 +239,7 @@ function norm_gauge(obj) {
 function fill_stat(id, stat) {
     // auto-populate an element with id "id" with the statistic "stat"
     // basically a shorthand
-    document.getElementById(id).innerHTML = stat;
+    document.getElementById(id).innerHTML = stat.toLocaleString();
 }
 
 
@@ -343,8 +341,10 @@ function call_plots_day(din) {
     }
     // console.log(dout);
     // timeBar(dout, 'WGen', 's1', self);
-    Plotly.newPlot('power-daily', [combineConfig(makeTrace(dout, 'time', 'WUse', toDate, self), wUse_trace), combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self), wGen_trace)], combineConfig(w_lay, layout), config);
-    Plotly.newPlot('batt-daily', [combineConfig(makeTrace(dout, 'time', 'bat%', toDate, batt_scale), batt_trace)], combineConfig(battplot_lay, layout), config);
+    power_arr = [combineConfig(makeTrace(dout, 'time', 'WUse', toDate, self), wUse_trace), combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self), wGen_trace)];
+    batt_arr = [combineConfig(makeTrace(dout, 'time', 'bat%', toDate, batt_scale), batt_trace)];
+    Plotly.newPlot('power-daily', power_arr.reverse(), combineConfig(w_lay, layout), config);
+    Plotly.newPlot('batt-daily', batt_arr, combineConfig(battplot_lay, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
@@ -359,7 +359,8 @@ function call_plots_month(din) {
     }
     // console.log(dout);
     // timeBar(dout, 'WGen', 's1', self);
-    Plotly.newPlot('energy-monthly', [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self), whGen_trace), combineConfig(makeTrace(dout, 'time', 'WhUse', toDate, self), whUse_trace)], combineConfig(wh_lay, layout), config);
+    energy_arr = [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self), whGen_trace), combineConfig(makeTrace(dout, 'time', 'WhUse', toDate, self), whUse_trace)];
+    Plotly.newPlot('energy-monthly', energy_arr, combineConfig(wh_lay, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
