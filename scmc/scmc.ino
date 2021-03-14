@@ -24,7 +24,7 @@ boolean firebaseAvailable = false;
 const int8_t UTC_offset = -5;//EST
 Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);
 struct tm timeClock; //used for keeping track of what time it is (in EST not toggling daylight savings)
-time_t timestampEpoch;
+time_t timestampEpoch; //internet time
 
 //live data
 float liveGenW = 0.0;
@@ -88,6 +88,7 @@ void runDayDataUpdate() {
   if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
     lastDayDataUpdateMillis = millis();
     firebaseSendDayData();
+    firebaseDeleteOldData("/data/dayData/", 24 * 60 * 60, 2);
 
     liveGenW = random(0, 300);
     liveUseW = random(5, 500);
@@ -100,6 +101,7 @@ void runMonthDataUpdate() {
   if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {
     lastMonthDataUpdateMillis = millis();
     firebaseSendMonthData();
+    firebaseDeleteOldData("/data/monthData/", 31 * 24 * 60 * 60, 2);
 
     dayGenWh = random(1400, 2000);
     dayUseWh = random(500, 3000);
