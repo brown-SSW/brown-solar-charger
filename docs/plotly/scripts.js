@@ -319,14 +319,14 @@ function call_settings(d) {
     MidBatteryThreshold = d.MidBatteryThreshold;
     Co2PerWh = d.Co2PerWh;
     // lastUpdate.settings = new Date();
-    if (!(message == 'null')) {
-        avail.classList.add("hide");
-        unavail.classList.add("hide");
+    if (!(message == 'null' || message =='')) {
+        // avail.classList.add("hide");
+        // unavail.classList.add("hide");
         fill_stat('maintain', message);
         maintain.classList.remove("disp");
     } else {
-        avail.classList.remove("hide");
-        unavail.classList.remove("hide");
+        // avail.classList.remove("hide");
+        // unavail.classList.remove("hide");
         fill_stat('maintain', '');
         maintain.classList.add("disp");
     }

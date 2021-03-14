@@ -1,3 +1,6 @@
+*{
+    box-sizing: border-box;
+}
 body {
     margin: 0 auto;
     max-width: 50rem;
@@ -57,7 +60,18 @@ div.status {
 }
 
 #maintain {
+    color: #FFF;
     background: #00bec4;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0.5rem 0;
+    text-align: center;
+    /*border-radius: 2px;*/
+    font-weight: bold;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 100;
 }
 
 @media only screen and (max-width: 641px) {

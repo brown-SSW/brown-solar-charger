@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>~</title>
+    <title>Brown Solar Charger</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
     <!-- Raphael must be included before justgage -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/justgage/1.2.9/justgage.min.js"></script>
@@ -20,6 +21,7 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
  -->
 
 <body>
+    <div id="maintain" class='disp'></div>
     <h1>Plotly tech demo</h1>
     <p>this is a paragraph</p>
     <p>Last updated <strong><span id='lastUpdate'></span></strong> ago.</p>
@@ -29,7 +31,6 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
     </ul>
     <div id="avail" class='status'>Available</div>
     <div id="unavail" class='status disp'>Unavailable</div>
-    <div id="maintain" class='status disp'></div>
     <div class="dials">
         <div id="g1"></div>
         <div id="battery"></div>
