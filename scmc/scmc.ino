@@ -20,6 +20,9 @@ const byte LED_BUILTIN = 2; //esp32s have a blue light on pin 2, can be nice for
 boolean wifiAvailable = false;
 boolean timeAvailable = false;
 boolean firebaseAvailable = false;
+boolean firebaseStarted = false;
+
+boolean firebaseAvailableHelper = true;
 
 const int8_t UTC_offset = -5;//EST
 Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);
@@ -58,7 +61,6 @@ void setup() {
   if (!wifiAvailable) {
     Serial.println("WARNING: WIFI NOT CONNECTING");
   }
-  firebaseAvailable = setupFirebase();
 
   digitalWrite(LED_BUILTIN, LOW);  //one time setup finished
 }
@@ -68,27 +70,42 @@ void loop() {
   wifiAvailable = checkWifiConnection();
   timeAvailable = updateTimeClock();
 
+  if (!firebaseStarted && wifiAvailable) {
+    connectFirebase();
+    firebaseStarted = true;
+  }
+  firebaseAvailableHelper = (firebaseStarted && wifiAvailable);
   runLiveUpdate();
   runDayDataUpdate();
   runMonthDataUpdate();
+  firebaseAvailable = firebaseAvailableHelper;
 
   vTaskDelay(20);
 }
 
 
-
 void runLiveUpdate() {
   if (millis() - lastLiveUpdateMillis > lastLiveUpdateMillisInterval) {
     lastLiveUpdateMillis = millis();
-    firebaseSendLiveData();
+    if (timeAvailable) { // don't want to give  inaccurate timestamps
+      if (!firebaseSendLiveData()) {
+        firebaseAvailableHelper = false;
+      }
+    }
   }
 }
 void runDayDataUpdate() {
 
   if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
     lastDayDataUpdateMillis = millis();
-    firebaseSendDayData();
-    firebaseDeleteOldData("/data/dayData/", 24 * 60 * 60, 2);
+    if (timeAvailable) {
+      if (!firebaseSendDayData()) {
+        firebaseAvailableHelper = false;
+      }
+      if (!firebaseDeleteOldData("/data/dayData/", 24 * 60 * 60, 2)) {
+        firebaseAvailableHelper = false;
+      }
+    }
 
     liveGenW = random(0, 300);
     liveUseW = random(5, 500);
@@ -100,8 +117,14 @@ void runMonthDataUpdate() {
 
   if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {
     lastMonthDataUpdateMillis = millis();
-    firebaseSendMonthData();
-    firebaseDeleteOldData("/data/monthData/", 31 * 24 * 60 * 60, 2);
+    if (timeAvailable) {
+      if (!firebaseSendMonthData()) {
+        firebaseAvailableHelper = false;
+      }
+      if (!firebaseDeleteOldData("/data/monthData/", 31 * 24 * 60 * 60, 2)) {
+        firebaseAvailableHelper = false;
+      }
+    }
 
     dayGenWh = random(1400, 2000);
     dayUseWh = random(500, 3000);

@@ -21,10 +21,12 @@ boolean checkWifiConnection() {
   boolean report = true;
   byte counter = 0;
   while (WiFi.status() != WL_CONNECTED && report) {
+    Serial.println("reconnecting to wifi");
+    WiFi.disconnect();
     WiFi.begin(wifi_ssid, wifi_password); //connect to wifi network, remove password for open networks
-    delay(300);
+    delay(333);
     counter++;
-    if (counter > 3) { //try to connect 3 times
+    if (counter > 2) { //try to connect 2 times
       report = false;
     }
   }

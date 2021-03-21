@@ -14,10 +14,11 @@ boolean updateTimeClock() {
   boolean report;
   if (!timeAvailable) {
     configTime(3600 * UTC_offset, 0, "pool.ntp.org");
+    delay(333);
   }
   if (!getLocalTime(&timeClock)) {
     report = false;
-    Serial.println("Failed to obtain time");
+    Serial.println("ERROR! Failed to obtain time");
   } else {
     time(&timestampEpoch);
     report = true;
