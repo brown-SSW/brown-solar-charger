@@ -108,6 +108,7 @@ boolean firebaseSendMonthData() {
   fjson.clear();
   fjson.set("WhGen", dayGenWh);
   fjson.set("WhUse", dayUseWh);
+  fjson.set("hUsed", dayHoursUsed);
   fjson.set("time", int(timestampEpoch));
 
   if (Firebase.RTDB.pushJSON(&fbdo, "/data/monthData", &fjson)) {

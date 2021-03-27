@@ -23,21 +23,26 @@ boolean firebaseAvailable = false;
 boolean firebaseStarted = false;
 
 boolean firebaseAvailableHelper = true;
+boolean firebaseRanSomething = false;
 
 const int8_t UTC_offset = -5;//EST
 Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);
 struct tm timeClock; //used for keeping track of what time it is (in EST not toggling daylight savings)
 time_t timestampEpoch; //internet time
 
+unsigned long wifiCheckUpdateMillis = 0;
+
 //live data
 float liveGenW = 0.0;
 float liveUseW = 0.0;
 float liveBatPer = 0.0;
 boolean available = false;
-int cumulativeWhGen = 1;
-
+int cumulativeWhGen = 0;
+float cumuWhGenHelper = 0.0;
+//day cumulative
 float dayUseWh = 0.0;
 float dayGenWh = 0.0;
+float dayHoursUsed = 0;
 
 unsigned long lastLiveUpdateMillis = 0;
 long lastLiveUpdateMillisInterval = 30000;
@@ -48,7 +53,8 @@ long lastDayDataUpdateMillisInterval = 30000;
 unsigned long lastMonthDataUpdateMillis = 0;
 long lastMonthDataUpdateMillisInterval = 10000;
 
-//CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
+unsigned long lastCalcUpdateMillis = 0;
+long lastCalcUpdateMillisInterval = 1000;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -58,9 +64,6 @@ void setup() {
   //set up pin modes and hardware connections.
   //everything should be in the safest state until the code has fully started
   wifiAvailable = setupWifi();
-  if (!wifiAvailable) {
-    Serial.println("WARNING: WIFI NOT CONNECTING");
-  }
 
   digitalWrite(LED_BUILTIN, LOW);  //one time setup finished
 }
@@ -70,24 +73,37 @@ void loop() {
   wifiAvailable = checkWifiConnection();
   timeAvailable = updateTimeClock();
 
+  runCalc();
+
   if (!firebaseStarted && wifiAvailable) {
     connectFirebase();
     firebaseStarted = true;
   }
-  firebaseAvailableHelper = (firebaseStarted && wifiAvailable);
+  firebaseAvailableHelper = (timeAvailable && firebaseStarted && wifiAvailable);
   runLiveUpdate();
   runDayDataUpdate();
   runMonthDataUpdate();
-  firebaseAvailable = firebaseAvailableHelper;
+  if (firebaseRanSomething) {
+    firebaseAvailable = firebaseAvailableHelper;
+  }
 
   vTaskDelay(20);
 }
 
+void runCalc() {
+  if (millis() - lastCalcUpdateMillis > lastCalcUpdateMillisInterval) {
+    cumuWhGenHelper += 1.0 * liveGenW * (millis() - lastCalcUpdateMillis) / (1000 * 60 * 60);
+    cumulativeWhGen += long(cumuWhGenHelper);
+    cumuWhGenHelper -= long(cumuWhGenHelper);
+    lastCalcUpdateMillis = millis();
+  }
+}
 
 void runLiveUpdate() {
   if (millis() - lastLiveUpdateMillis > lastLiveUpdateMillisInterval) {
     lastLiveUpdateMillis = millis();
-    if (timeAvailable) { // don't want to give  inaccurate timestamps
+    firebaseRanSomething = true;
+    if (timeAvailable) { // don't want to give inaccurate timestamps
       if (!firebaseSendLiveData()) {
         firebaseAvailableHelper = false;
       }
@@ -98,6 +114,7 @@ void runDayDataUpdate() {
 
   if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
     lastDayDataUpdateMillis = millis();
+    firebaseRanSomething = true;
     if (timeAvailable) {
       if (!firebaseSendDayData()) {
         firebaseAvailableHelper = false;
@@ -107,7 +124,7 @@ void runDayDataUpdate() {
       }
     }
 
-    liveGenW = random(0, 300);
+    liveGenW = 10000;
     liveUseW = random(5, 500);
     liveBatPer = random(50, 100);
   }
@@ -115,8 +132,9 @@ void runDayDataUpdate() {
 
 void runMonthDataUpdate() {
 
-  if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {
+  if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {//later, replace this with time of day code?
     lastMonthDataUpdateMillis = millis();
+    firebaseRanSomething = true;
     if (timeAvailable) {
       if (!firebaseSendMonthData()) {
         firebaseAvailableHelper = false;
@@ -125,9 +143,10 @@ void runMonthDataUpdate() {
         firebaseAvailableHelper = false;
       }
     }
-
+    //after testing, these variables should actually be reset to 0 for the next day
     dayGenWh = random(1400, 2000);
     dayUseWh = random(500, 3000);
+    dayHoursUsed = random(0, 60) / 10.0;
 
   }
 }
