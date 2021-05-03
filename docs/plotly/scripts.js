@@ -18,11 +18,13 @@ const layout = {
     hovermode: 'x unified',
     xaxis: {
         showgrid: false,
-        zeroline: false
+        zeroline: false,
+        fixedrange: true
     },
     yaxis: {
         showgrid: true,
         showline: false,
+        fixedrange: true
     }
 };
 const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
@@ -193,7 +195,7 @@ const battplot_lay = {
     title: 'Battery Capacity - Daily',
     yaxis: {
         title: 'Capacity (%)',
-        fixedrange: true,
+        // fixedrange: true,
         range: [0, 100]
     },
     showlegend: false,
