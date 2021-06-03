@@ -18,7 +18,7 @@ boolean updateTimeClock() {
   }
   if (!getLocalTime(&timeClock)) {
     report = false;
-    Serial.println("ERROR! Failed to obtain time");
+    Serial.println("Failed to obtain time!");
   } else {
     time(&timestampEpoch);
     report = true;

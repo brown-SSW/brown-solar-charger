@@ -18,7 +18,7 @@ boolean sendEmail(const char* subject, const char* text) {
   message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_normal;
 
   if (!smtp.connect(&session)) {
-    Serial.println(F("error connecting to server with session config"));
+    Serial.println("error connecting to server with session config");
     return false;
   }
   if (!MailClient.sendMail(&smtp, &message)) {

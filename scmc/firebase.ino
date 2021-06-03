@@ -2,6 +2,7 @@ FirebaseData fbdo; //firebase data object
 FirebaseAuth fauth;
 FirebaseConfig fconfig;
 FirebaseJson fjson;
+FirebaseJsonData jsonData;
 
 void connectFirebase() {
   fconfig.host = FIREBASE_URL;
@@ -15,15 +16,67 @@ void connectFirebase() {
   Firebase.RTDB.setMaxRetry(&fbdo, 1);
   Firebase.setFloatDigits(3);
 }
-boolean loadFirebaseSettings() {
+boolean firebaseGetSettings() {
   if (Firebase.RTDB.getJSON(&fbdo, "/settings")) {
-    //load settings here
+    fjson = fbdo.jsonObject();
+
+    //    fjson.get(jsonData, "/OTAEnable");
+    //    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
+    //      otaEnable = jsonData.boolValue;
+    //    } else {
+    //      Serial.println("error: OTAEnable type wrong");
+    //    }
+
+    fjson.clear();
     return true;
   } else {
     Serial.println("ERROR! (settings)");
     Serial.println(fbdo.errorReason());
     return false;
   }
+}
+boolean firebaseSendDebug() {
+  fjson.clear();
+  fjson.set("local ip", WiFi.localIP().toString());
+  fjson.set("OTAEnabled", otaEnable);
+  fjson.set("time", int(timestampEpoch));
+  fjson.set("test", int(10));
+  if (Firebase.RTDB.updateNodeSilent(&fbdo, "/debug", &fjson))  {
+    return true;
+  }  else  {
+    Serial.println("ERROR! (sendDebug)");
+    Serial.println(fbdo.errorReason());
+    return false;
+  }
+}
+boolean firebaseRecvDebug() {
+  if (Firebase.RTDB.getJSON(&fbdo, "/debug")) {
+    fjson = fbdo.jsonObject();
+
+    fjson.get(jsonData, "/EnableOTA");
+    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
+      otaEnable = jsonData.boolValue;
+    } else {
+      Serial.println("error: EnableOTA type wrong");
+    }
+
+    //add debug data to recieve
+
+    fjson.get(jsonData, "/REBOOT");
+    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
+      if (jsonData.boolValue) {
+        fjson.set("/REBOOT", false);
+        Firebase.RTDB.updateNodeSilent(&fbdo, "/debug", &fjson);
+        Serial.println("REBOOTING (settings/REBOOT equaled true in firebase)");
+        rebootESP32();
+      }
+    }
+
+  } else {
+    Serial.println("ERROR! (get debug)");
+    return false;
+  }
+  return true;
 }
 boolean firebaseSendLiveData() {
   fjson.clear();
@@ -71,7 +124,6 @@ boolean firebaseDeleteOldData(String path, unsigned long interval, byte num) {
           }
         }
         fjson.iteratorEnd();
-
         fjson.clear();
 
       }

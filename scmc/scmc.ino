@@ -1,7 +1,7 @@
 /**
    Solar Charger Monitoring Code
    This program monitors a solar power system and runs a physical and online dashboard.
-   Compatible with esp32 dev board with 38 pins
+   board: ESP32 Dev Module (38 pins)
    charge controller: Renogy ROVER ELITE 40A MPPT
 
    Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021 https://github.com/brown-SSW/brown-solar-charger
@@ -25,8 +25,10 @@ boolean firebaseStarted = false;
 boolean firebaseAvailableHelper = true;
 boolean firebaseRanSomething = false;
 
-const int8_t UTC_offset = -5;//EST
-Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);
+boolean otaEnable = true;
+
+const int8_t UTC_offset = -5;//EST (not daylight time)
+Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);//latitude,longitude of Brown
 struct tm timeClock; //used for keeping track of what time it is (in EST not toggling daylight savings)
 time_t timestampEpoch; //internet time
 
@@ -51,10 +53,15 @@ unsigned long lastDayDataUpdateMillis = 0;
 long lastDayDataUpdateMillisInterval = 30000;
 
 unsigned long lastMonthDataUpdateMillis = 0;
-long lastMonthDataUpdateMillisInterval = 10000;
+long lastMonthDataUpdateMillisInterval = 100000;
 
 unsigned long lastCalcUpdateMillis = 0;
 long lastCalcUpdateMillisInterval = 1000;
+
+unsigned long lastLoadSettingsMillis = 0;
+long lastLoadSettingsMillisInterval = 10000;
+
+long wifiCheckIntervalMillis = 5000;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -62,9 +69,10 @@ void setup() {
   Serial.begin(115200);
 
   //set up pin modes and hardware connections.
-  //everything should be in the safest state until the code has fully started
-  wifiAvailable = setupWifi();
-
+  setSafe();//everything should be in the safest state until the code has fully started
+  setupWifi();
+  setupOTA();
+  Serial.println("STARTING Loop!");
   digitalWrite(LED_BUILTIN, LOW);  //one time setup finished
 }
 
@@ -83,11 +91,17 @@ void loop() {
   runLiveUpdate();
   runDayDataUpdate();
   runMonthDataUpdate();
+  runSettingsDebugUpdate();
   if (firebaseRanSomething) {
     firebaseAvailable = firebaseAvailableHelper;
   }
-
+  runOTA();
   vTaskDelay(20);
+}
+
+void setSafe() {
+  //put everything in the safest possible state (when booting, in detected error state, or reprogramming)
+  Serial.println("setting safe");
 }
 
 void runCalc() {
@@ -110,6 +124,23 @@ void runLiveUpdate() {
     }
   }
 }
+
+void runSettingsDebugUpdate() {
+  if (millis() - lastLoadSettingsMillis > lastLoadSettingsMillisInterval) {
+    lastLoadSettingsMillis = millis();
+    firebaseRanSomething = true;
+    if (!firebaseGetSettings()) {
+      firebaseAvailableHelper = false;
+    }
+    if (!firebaseRecvDebug()) {
+      firebaseAvailableHelper = false;
+    }
+    if (!firebaseSendDebug()) {
+      firebaseAvailableHelper = false;
+    }
+  }
+}
+
 void runDayDataUpdate() {
 
   if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
@@ -132,7 +163,7 @@ void runDayDataUpdate() {
 
 void runMonthDataUpdate() {
 
-  if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {//later, replace this with time of day code?
+  if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {
     lastMonthDataUpdateMillis = millis();
     firebaseRanSomething = true;
     if (timeAvailable) {
@@ -149,4 +180,13 @@ void runMonthDataUpdate() {
     dayHoursUsed = random(0, 60) / 10.0;
 
   }
+}
+
+void rebootESP32() {
+  setSafe();
+  Serial.flush();
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  delay(1000);
+  ESP.restart();
 }
