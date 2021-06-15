@@ -1,7 +1,7 @@
 /**
    Solar Charger Monitoring Code
    This program monitors a solar power system and runs a physical and online dashboard.
-   board: ESP32 Dev Module (38 pins)
+   board: 
    charge controller: Renogy ROVER ELITE 40A MPPT
 
    Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021 https://github.com/brown-SSW/brown-solar-charger
