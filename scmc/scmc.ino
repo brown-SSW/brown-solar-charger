@@ -1,7 +1,7 @@
 /**
    Solar Charger Monitoring Code
    This program monitors a solar power system and runs a physical and online dashboard.
-   Compatible with esp32 dev board with 38 pins
+   board: ESP32 Dev Module (38 pins)
    charge controller: Renogy ROVER ELITE 40A MPPT
 
    Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021 https://github.com/brown-SSW/brown-solar-charger
@@ -20,21 +20,31 @@ const byte LED_BUILTIN = 2; //esp32s have a blue light on pin 2, can be nice for
 boolean wifiAvailable = false;
 boolean timeAvailable = false;
 boolean firebaseAvailable = false;
+boolean firebaseStarted = false;
 
-const int8_t UTC_offset = -5;//EST
-Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);
+boolean firebaseAvailableHelper = true;
+boolean firebaseRanSomething = false;
+
+boolean otaEnable = true;
+
+const int8_t UTC_offset = -5;//EST (not daylight time)
+Dusk2Dawn sunTime(41.82, -71.40, UTC_offset);//latitude,longitude of Brown
 struct tm timeClock; //used for keeping track of what time it is (in EST not toggling daylight savings)
 time_t timestampEpoch; //internet time
+
+unsigned long wifiCheckUpdateMillis = 0;
 
 //live data
 float liveGenW = 0.0;
 float liveUseW = 0.0;
 float liveBatPer = 0.0;
 boolean available = false;
-int cumulativeWhGen = 1;
-
+int cumulativeWhGen = 0;
+float cumuWhGenHelper = 0.0;
+//day cumulative
 float dayUseWh = 0.0;
 float dayGenWh = 0.0;
+float dayHoursUsed = 0;
 
 unsigned long lastLiveUpdateMillis = 0;
 long lastLiveUpdateMillisInterval = 30000;
@@ -43,9 +53,15 @@ unsigned long lastDayDataUpdateMillis = 0;
 long lastDayDataUpdateMillisInterval = 30000;
 
 unsigned long lastMonthDataUpdateMillis = 0;
-long lastMonthDataUpdateMillisInterval = 10000;
+long lastMonthDataUpdateMillisInterval = 100000;
 
-//CircularBuffer<float, 50> dataBuffer1; //declare a buffer that can hold 50 floats
+unsigned long lastCalcUpdateMillis = 0;
+long lastCalcUpdateMillisInterval = 1000;
+
+unsigned long lastLoadSettingsMillis = 0;
+long lastLoadSettingsMillisInterval = 10000;
+
+long wifiCheckIntervalMillis = 5000;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -53,13 +69,10 @@ void setup() {
   Serial.begin(115200);
 
   //set up pin modes and hardware connections.
-  //everything should be in the safest state until the code has fully started
-  wifiAvailable = setupWifi();
-  if (!wifiAvailable) {
-    Serial.println("WARNING: WIFI NOT CONNECTING");
-  }
-  firebaseAvailable = setupFirebase();
-
+  setSafe();//everything should be in the safest state until the code has fully started
+  setupWifi();
+  setupOTA();
+  Serial.println("STARTING Loop!");
   digitalWrite(LED_BUILTIN, LOW);  //one time setup finished
 }
 
@@ -68,29 +81,81 @@ void loop() {
   wifiAvailable = checkWifiConnection();
   timeAvailable = updateTimeClock();
 
+  runCalc();
+
+  if (!firebaseStarted && wifiAvailable) {
+    connectFirebase();
+    firebaseStarted = true;
+  }
+  firebaseAvailableHelper = (timeAvailable && firebaseStarted && wifiAvailable);
   runLiveUpdate();
   runDayDataUpdate();
   runMonthDataUpdate();
-
+  runSettingsDebugUpdate();
+  if (firebaseRanSomething) {
+    firebaseAvailable = firebaseAvailableHelper;
+  }
+  runOTA();
   vTaskDelay(20);
 }
 
+void setSafe() {
+  //put everything in the safest possible state (when booting, in detected error state, or reprogramming)
+  Serial.println("setting safe");
+}
 
+void runCalc() {
+  if (millis() - lastCalcUpdateMillis > lastCalcUpdateMillisInterval) {
+    cumuWhGenHelper += 1.0 * liveGenW * (millis() - lastCalcUpdateMillis) / (1000 * 60 * 60);
+    cumulativeWhGen += long(cumuWhGenHelper);
+    cumuWhGenHelper -= long(cumuWhGenHelper);
+    lastCalcUpdateMillis = millis();
+  }
+}
 
 void runLiveUpdate() {
   if (millis() - lastLiveUpdateMillis > lastLiveUpdateMillisInterval) {
     lastLiveUpdateMillis = millis();
-    firebaseSendLiveData();
+    firebaseRanSomething = true;
+    if (timeAvailable) { // don't want to give inaccurate timestamps
+      if (!firebaseSendLiveData()) {
+        firebaseAvailableHelper = false;
+      }
+    }
   }
 }
+
+void runSettingsDebugUpdate() {
+  if (millis() - lastLoadSettingsMillis > lastLoadSettingsMillisInterval) {
+    lastLoadSettingsMillis = millis();
+    firebaseRanSomething = true;
+    if (!firebaseGetSettings()) {
+      firebaseAvailableHelper = false;
+    }
+    if (!firebaseRecvDebug()) {
+      firebaseAvailableHelper = false;
+    }
+    if (!firebaseSendDebug()) {
+      firebaseAvailableHelper = false;
+    }
+  }
+}
+
 void runDayDataUpdate() {
 
   if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
     lastDayDataUpdateMillis = millis();
-    firebaseSendDayData();
-    firebaseDeleteOldData("/data/dayData/", 24 * 60 * 60, 2);
+    firebaseRanSomething = true;
+    if (timeAvailable) {
+      if (!firebaseSendDayData()) {
+        firebaseAvailableHelper = false;
+      }
+      if (!firebaseDeleteOldData("/data/dayData/", 24 * 60 * 60, 2)) {
+        firebaseAvailableHelper = false;
+      }
+    }
 
-    liveGenW = random(0, 300);
+    liveGenW = 10000;
     liveUseW = random(5, 500);
     liveBatPer = random(50, 100);
   }
@@ -100,11 +165,28 @@ void runMonthDataUpdate() {
 
   if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {
     lastMonthDataUpdateMillis = millis();
-    firebaseSendMonthData();
-    firebaseDeleteOldData("/data/monthData/", 31 * 24 * 60 * 60, 2);
-
+    firebaseRanSomething = true;
+    if (timeAvailable) {
+      if (!firebaseSendMonthData()) {
+        firebaseAvailableHelper = false;
+      }
+      if (!firebaseDeleteOldData("/data/monthData/", 31 * 24 * 60 * 60, 2)) {
+        firebaseAvailableHelper = false;
+      }
+    }
+    //after testing, these variables should actually be reset to 0 for the next day
     dayGenWh = random(1400, 2000);
     dayUseWh = random(500, 3000);
+    dayHoursUsed = random(0, 60) / 10.0;
 
   }
+}
+
+void rebootESP32() {
+  setSafe();
+  Serial.flush();
+  WiFi.disconnect(true);
+  WiFi.mode(WIFI_OFF);
+  delay(1000);
+  ESP.restart();
 }

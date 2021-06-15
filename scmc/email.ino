@@ -1,5 +1,5 @@
 SMTPSession smtp;
-void sendEmail(const char* subject, const char* text) {
+boolean sendEmail(const char* subject, const char* text) {
   ESP_Mail_Session session;
   session.server.host_name = "smtp.gmail.com";
   session.server.port = 465;
@@ -18,9 +18,12 @@ void sendEmail(const char* subject, const char* text) {
   message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_normal;
 
   if (!smtp.connect(&session)) {
-    Serial.println(F("error connecting to server with session config"));
+    Serial.println("error connecting to server with session config");
+    return false;
   }
   if (!MailClient.sendMail(&smtp, &message)) {
     Serial.println("Error sending Email, " + smtp.errorReason());
+    return false;
   }
+  return true;
 }
