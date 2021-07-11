@@ -1,7 +1,7 @@
 /**
    Solar Charger Monitoring Code
    This program monitors a solar power system and runs a physical and online dashboard.
-   board: 
+   microcontroller: esp32
    charge controller: Renogy ROVER ELITE 40A MPPT
 
    Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021 https://github.com/brown-SSW/brown-solar-charger
@@ -21,6 +21,9 @@ boolean wifiAvailable = false;
 boolean timeAvailable = false;
 boolean firebaseAvailable = false;
 boolean firebaseStarted = false;
+
+boolean muteAllAlerts = false;
+boolean firebaseAvailableAlerted = true;
 
 boolean firebaseAvailableHelper = true;
 boolean firebaseRanSomething = false;
@@ -95,6 +98,19 @@ void loop() {
   if (firebaseRanSomething) {
     firebaseAvailable = firebaseAvailableHelper;
   }
+
+  if (firebaseAvailable) {
+    firebaseAvailableAlerted = false;
+  } else {
+    if (!firebaseAvailableAlerted) {
+      if (!muteAllAlerts) {
+        sendEmail("[ALERT] solar charging station error", "Firebase not available");
+      }
+      Serial.println("[ALERT]: Firebase not available");
+      firebaseAvailableAlerted = true;
+    }
+  }
+
   runOTA();
   vTaskDelay(20);
 }

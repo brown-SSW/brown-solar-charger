@@ -30,7 +30,7 @@ boolean firebaseGetSettings() {
     fjson.clear();
     return true;
   } else {
-    Serial.println("ERROR! (settings)");
+    Serial.println("ERROR! Firebase (settings)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -40,11 +40,10 @@ boolean firebaseSendDebug() {
   fjson.set("local ip", WiFi.localIP().toString());
   fjson.set("OTAEnabled", otaEnable);
   fjson.set("time", int(timestampEpoch));
-  fjson.set("test", int(10));
   if (Firebase.RTDB.updateNodeSilent(&fbdo, "/debug", &fjson))  {
     return true;
   }  else  {
-    Serial.println("ERROR! (sendDebug)");
+    Serial.println("ERROR! Firebase (sendDebug)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -73,7 +72,7 @@ boolean firebaseRecvDebug() {
     }
 
   } else {
-    Serial.println("ERROR! (get debug)");
+    Serial.println("ERROR! Firebase (get debug)");
     return false;
   }
   return true;
@@ -91,7 +90,7 @@ boolean firebaseSendLiveData() {
     return true;
   }
   else  {
-    Serial.println("ERROR! (live)");
+    Serial.println("ERROR! Firebase (live)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -118,9 +117,9 @@ boolean firebaseDeleteOldData(String path, unsigned long interval, byte num) {
         if (!timeJsonData.success || timeJsonData.intValue < timestampEpoch - interval) { //old data
           String nodeToDelete = path + key;
           if (!Firebase.RTDB.deleteNode(&fbdo, nodeToDelete.c_str())) {
-            Serial.println("ERROR! (delete delete)");
+            Serial.println("ERROR! Firebase (delete delete)");
             Serial.println(fbdo.errorReason());
-            report = false;
+            //            report = false; deleteNode seems to work even though error is thrown
           }
         }
         fjson.iteratorEnd();
@@ -129,7 +128,7 @@ boolean firebaseDeleteOldData(String path, unsigned long interval, byte num) {
       }
       else {
         //Failed to get JSON data at defined node, print out the error reason
-        Serial.println("ERROR! (delete)");
+        Serial.println("ERROR! Firebase (delete)");
         Serial.println(fbdo.errorReason());
         report = false;
       }
@@ -150,7 +149,7 @@ boolean firebaseSendDayData() {
     return true;
   }
   else {
-    Serial.println("ERROR! (day)");
+    Serial.println("ERROR! Firebase (day)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -167,7 +166,7 @@ boolean firebaseSendMonthData() {
     return true;
   }
   else {
-    Serial.println("ERROR! (month)");
+    Serial.println("ERROR! Firebase (month)");
     Serial.println(fbdo.errorReason());
     return false;
   }
