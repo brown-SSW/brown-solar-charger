@@ -20,12 +20,12 @@ boolean firebaseGetSettings() {
   if (Firebase.RTDB.getJSON(&fbdo, "/settings")) {
     fjson = fbdo.jsonObject();
 
-    //    fjson.get(jsonData, "/OTAEnable");
-    //    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
-    //      otaEnable = jsonData.boolValue;
-    //    } else {
-    //      Serial.println("error: OTAEnable type wrong");
-    //    }
+    fjson.get(jsonData, "/liveDataUpdateIntervalMillis");
+    if (jsonData.type == "int") {
+      liveDataUpdateMillisInterval = jsonData.intValue;
+    } else {
+      Serial.println("ERROR! Firebase (settings) liveDataUpdateIntervalMillis type wrong");
+    }
 
     fjson.clear();
     return true;
@@ -38,8 +38,14 @@ boolean firebaseGetSettings() {
 boolean firebaseSendDebug() {
   fjson.clear();
   fjson.set("local ip", WiFi.localIP().toString());
-  fjson.set("OTAEnabled", otaEnable);
+  fjson.set("OTAEnabled (read)", otaEnable);
   fjson.set("time", int(timestampEpoch));
+  fjson.set("minAfterMidnight", minutesAfterMidnight());
+  fjson.set("sunrise", sunriseTime());
+  fjson.set("sunset", sunsetTime());
+  fjson.set("liveDataUpdateMillisInterval (read)", int(liveDataUpdateMillisInterval));
+  fjson.set("seconds since boot", int(millis() / 1000));
+
   if (Firebase.RTDB.updateNodeSilent(&fbdo, "/debug", &fjson))  {
     return true;
   }  else  {
@@ -53,10 +59,10 @@ boolean firebaseRecvDebug() {
     fjson = fbdo.jsonObject();
 
     fjson.get(jsonData, "/EnableOTA");
-    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
+    if (jsonData.type == "bool") {
       otaEnable = jsonData.boolValue;
     } else {
-      Serial.println("error: EnableOTA type wrong");
+      Serial.println("ERROR! Firebase (RecvDebug) EnableOTA type wrong");
     }
 
     //add debug data to recieve
@@ -66,9 +72,11 @@ boolean firebaseRecvDebug() {
       if (jsonData.boolValue) {
         fjson.set("/REBOOT", false);
         Firebase.RTDB.updateNodeSilent(&fbdo, "/debug", &fjson);
-        Serial.println("REBOOTING (settings/REBOOT equaled true in firebase)");
+        Serial.println("REBOOTING! (settings/REBOOT equaled true in firebase)");
         rebootESP32();
       }
+    } else {
+      Serial.println("ERROR! Firebase (RecvDebug) REBOOT type wrong");
     }
 
   } else {
@@ -119,7 +127,7 @@ boolean firebaseDeleteOldData(String path, unsigned long interval, byte num) {
           if (!Firebase.RTDB.deleteNode(&fbdo, nodeToDelete.c_str())) {
             Serial.println("ERROR! Firebase (delete delete)");
             Serial.println(fbdo.errorReason());
-            //            report = false; deleteNode seems to work even though error is thrown
+            //report = false; deleteNode seems to work even though error is thrown TODO: uncomment this
           }
         }
         fjson.iteratorEnd();
