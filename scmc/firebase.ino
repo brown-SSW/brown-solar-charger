@@ -20,17 +20,17 @@ boolean firebaseGetSettings() {
   if (Firebase.RTDB.getJSON(&fbdo, "/settings")) {
     fjson = fbdo.jsonObject();
 
-    //    fjson.get(jsonData, "/OTAEnable");
-    //    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
-    //      otaEnable = jsonData.boolValue;
-    //    } else {
-    //      Serial.println("error: OTAEnable type wrong");
-    //    }
+    fjson.get(jsonData, "/liveDataUpdateIntervalMillis");
+    if (jsonData.type == "int") {
+      liveDataUpdateMillisInterval = jsonData.intValue;
+    } else {
+      Serial.println("ERROR! Firebase (settings) liveDataUpdateIntervalMillis type wrong");
+    }
 
     fjson.clear();
     return true;
   } else {
-    Serial.println("ERROR! (settings)");
+    Serial.println("ERROR! Firebase (settings)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -38,13 +38,18 @@ boolean firebaseGetSettings() {
 boolean firebaseSendDebug() {
   fjson.clear();
   fjson.set("local ip", WiFi.localIP().toString());
-  fjson.set("OTAEnabled", otaEnable);
+  fjson.set("OTAEnabled (read)", otaEnable);
   fjson.set("time", int(timestampEpoch));
-  fjson.set("test", int(10));
+  fjson.set("minAfterMidnight", minutesAfterMidnight());
+  fjson.set("sunrise", sunriseTime());
+  fjson.set("sunset", sunsetTime());
+  fjson.set("liveDataUpdateMillisInterval (read)", int(liveDataUpdateMillisInterval));
+  fjson.set("seconds since boot", int(millis() / 1000));
+
   if (Firebase.RTDB.updateNodeSilent(&fbdo, "/debug", &fjson))  {
     return true;
   }  else  {
-    Serial.println("ERROR! (sendDebug)");
+    Serial.println("ERROR! Firebase (sendDebug)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -54,10 +59,10 @@ boolean firebaseRecvDebug() {
     fjson = fbdo.jsonObject();
 
     fjson.get(jsonData, "/EnableOTA");
-    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
+    if (jsonData.type == "bool") {
       otaEnable = jsonData.boolValue;
     } else {
-      Serial.println("error: EnableOTA type wrong");
+      Serial.println("ERROR! Firebase (RecvDebug) EnableOTA type wrong");
     }
 
     //add debug data to recieve
@@ -67,13 +72,15 @@ boolean firebaseRecvDebug() {
       if (jsonData.boolValue) {
         fjson.set("/REBOOT", false);
         Firebase.RTDB.updateNodeSilent(&fbdo, "/debug", &fjson);
-        Serial.println("REBOOTING (settings/REBOOT equaled true in firebase)");
+        Serial.println("REBOOTING! (settings/REBOOT equaled true in firebase)");
         rebootESP32();
       }
+    } else {
+      Serial.println("ERROR! Firebase (RecvDebug) REBOOT type wrong");
     }
 
   } else {
-    Serial.println("ERROR! (get debug)");
+    Serial.println("ERROR! Firebase (get debug)");
     return false;
   }
   return true;
@@ -91,7 +98,7 @@ boolean firebaseSendLiveData() {
     return true;
   }
   else  {
-    Serial.println("ERROR! (live)");
+    Serial.println("ERROR! Firebase (live)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -118,9 +125,9 @@ boolean firebaseDeleteOldData(String path, unsigned long interval, byte num) {
         if (!timeJsonData.success || timeJsonData.intValue < timestampEpoch - interval) { //old data
           String nodeToDelete = path + key;
           if (!Firebase.RTDB.deleteNode(&fbdo, nodeToDelete.c_str())) {
-            Serial.println("ERROR! (delete delete)");
+            Serial.println("ERROR! Firebase (delete delete)");
             Serial.println(fbdo.errorReason());
-            report = false;
+            //report = false; deleteNode seems to work even though error is thrown TODO: uncomment this
           }
         }
         fjson.iteratorEnd();
@@ -129,7 +136,7 @@ boolean firebaseDeleteOldData(String path, unsigned long interval, byte num) {
       }
       else {
         //Failed to get JSON data at defined node, print out the error reason
-        Serial.println("ERROR! (delete)");
+        Serial.println("ERROR! Firebase (delete)");
         Serial.println(fbdo.errorReason());
         report = false;
       }
@@ -150,7 +157,7 @@ boolean firebaseSendDayData() {
     return true;
   }
   else {
-    Serial.println("ERROR! (day)");
+    Serial.println("ERROR! Firebase (day)");
     Serial.println(fbdo.errorReason());
     return false;
   }
@@ -167,7 +174,7 @@ boolean firebaseSendMonthData() {
     return true;
   }
   else {
-    Serial.println("ERROR! (month)");
+    Serial.println("ERROR! Firebase (month)");
     Serial.println(fbdo.errorReason());
     return false;
   }

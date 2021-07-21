@@ -1,17 +1,15 @@
 /**
    Solar Charger Monitoring Code
    This program monitors a solar power system and runs a physical and online dashboard.
-   board: ESP32 Dev Module (38 pins)
+   microcontroller: esp32
    charge controller: Renogy ROVER ELITE 40A MPPT
 
    Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021 https://github.com/brown-SSW/brown-solar-charger
 */
-
+#include <Arduino.h>
 #include <WiFi.h> //used for sending stuff over the wifi radio within the esp32
-#include <CircularBuffer.h> //used for having fixed size buffers that discard the oldest data https://github.com/rlogiacco/CircularBuffer
-#include <PubSubClient.h> //https://github.com/knolleary/pubsubclient
 #include <ESP_Mail_Client.h> //library for sending email https://github.com/mobizt/ESP-Mail-Client
-#include <Dusk2Dawn.h> //sunrise sunset lookup https://github.com/dmkishi/Dusk2Dawn remove "static" from library as needed to fix compiling error
+#include <Dusk2Dawn.h> //sunrise sunset lookup https://github.com/dmkishi/Dusk2Dawn DOWNLOAD ZIP OF MASTER AND INSTALL MANUALLY SINCE THE RELEASE (1.0.1) IS OUTDATED AND DOESN'T COMPILE!
 #include <Firebase_ESP_Client.h> //firebase library https://github.com/mobizt/Firebase-ESP-Client
 
 #include "secret.h" //passwords and things we don't want public can be kept in this file since it doesn't upload to github (in gitignore) The file should be kept somewhat secure.
@@ -22,7 +20,19 @@ boolean timeAvailable = false;
 boolean firebaseAvailable = false;
 boolean firebaseStarted = false;
 
-boolean firebaseAvailableHelper = true;
+boolean firebaseAvailSettings = true;
+boolean firebaseAvailSendDebug = true;
+boolean firebaseAvailRecvDebug = true;
+boolean firebaseAvailSendLive = true;
+boolean firebaseAvailDeleteDay = true;
+boolean firebaseAvailDay = true;
+boolean firebaseAvailDeleteMonth = true;
+boolean firebaseAvailMonth = true;
+
+
+boolean muteAllAlerts = true;
+boolean firebaseAvailableAlerted = true;
+
 boolean firebaseRanSomething = false;
 
 boolean otaEnable = true;
@@ -47,19 +57,19 @@ float dayGenWh = 0.0;
 float dayHoursUsed = 0;
 
 unsigned long lastLiveUpdateMillis = 0;
-long lastLiveUpdateMillisInterval = 30000;
+long liveDataUpdateMillisInterval = 30000;
 
 unsigned long lastDayDataUpdateMillis = 0;
-long lastDayDataUpdateMillisInterval = 30000;
+long dayDataUpdateMillisInterval = 30000;
 
 unsigned long lastMonthDataUpdateMillis = 0;
-long lastMonthDataUpdateMillisInterval = 100000;
+long monthDataUpdateMillisInterval = 100000; //change to daily timer
 
 unsigned long lastCalcUpdateMillis = 0;
-long lastCalcUpdateMillisInterval = 1000;
+long calcUpdateMillisInterval = 1000;
 
 unsigned long lastLoadSettingsMillis = 0;
-long lastLoadSettingsMillisInterval = 10000;
+long loadSettingsMillisInterval = 10000;
 
 long wifiCheckIntervalMillis = 5000;
 
@@ -87,14 +97,34 @@ void loop() {
     connectFirebase();
     firebaseStarted = true;
   }
-  firebaseAvailableHelper = (timeAvailable && firebaseStarted && wifiAvailable);
   runLiveUpdate();
   runDayDataUpdate();
   runMonthDataUpdate();
   runSettingsDebugUpdate();
-  if (firebaseRanSomething) {
-    firebaseAvailable = firebaseAvailableHelper;
+  if (firebaseRanSomething && firebaseStarted) {
+    firebaseAvailable =
+      firebaseAvailSettings &&
+      firebaseAvailSendDebug &&
+      firebaseAvailRecvDebug &&
+      firebaseAvailSendLive &&
+      firebaseAvailDeleteDay &&
+      firebaseAvailDay &&
+      firebaseAvailDeleteMonth &&
+      firebaseAvailMonth;
   }
+
+  if (firebaseAvailable) {
+    firebaseAvailableAlerted = false;
+  } else {
+    if (!firebaseAvailableAlerted) {
+      if (!muteAllAlerts) {
+        sendEmail("[ALERT] solar charging station error", "Firebase not available");
+      }
+      Serial.println("[ALERT]: Firebase not available");
+      firebaseAvailableAlerted = true;
+    }
+  }
+
   runOTA();
   vTaskDelay(20);
 }
@@ -105,7 +135,7 @@ void setSafe() {
 }
 
 void runCalc() {
-  if (millis() - lastCalcUpdateMillis > lastCalcUpdateMillisInterval) {
+  if (millis() - lastCalcUpdateMillis > calcUpdateMillisInterval) {
     cumuWhGenHelper += 1.0 * liveGenW * (millis() - lastCalcUpdateMillis) / (1000 * 60 * 60);
     cumulativeWhGen += long(cumuWhGenHelper);
     cumuWhGenHelper -= long(cumuWhGenHelper);
@@ -114,45 +144,32 @@ void runCalc() {
 }
 
 void runLiveUpdate() {
-  if (millis() - lastLiveUpdateMillis > lastLiveUpdateMillisInterval) {
+  if (millis() - lastLiveUpdateMillis > liveDataUpdateMillisInterval) {
     lastLiveUpdateMillis = millis();
     firebaseRanSomething = true;
     if (timeAvailable) { // don't want to give inaccurate timestamps
-      if (!firebaseSendLiveData()) {
-        firebaseAvailableHelper = false;
-      }
+      firebaseAvailSendLive = firebaseSendLiveData();
     }
   }
 }
 
 void runSettingsDebugUpdate() {
-  if (millis() - lastLoadSettingsMillis > lastLoadSettingsMillisInterval) {
+  if (millis() - lastLoadSettingsMillis > loadSettingsMillisInterval) {
     lastLoadSettingsMillis = millis();
     firebaseRanSomething = true;
-    if (!firebaseGetSettings()) {
-      firebaseAvailableHelper = false;
-    }
-    if (!firebaseRecvDebug()) {
-      firebaseAvailableHelper = false;
-    }
-    if (!firebaseSendDebug()) {
-      firebaseAvailableHelper = false;
-    }
+    firebaseAvailSettings = firebaseGetSettings();
+    firebaseAvailRecvDebug = firebaseRecvDebug();
+    firebaseAvailSendDebug = firebaseSendDebug();
   }
 }
 
 void runDayDataUpdate() {
-
-  if (millis() - lastDayDataUpdateMillis > lastDayDataUpdateMillisInterval) {
+  if (millis() - lastDayDataUpdateMillis > dayDataUpdateMillisInterval) {
     lastDayDataUpdateMillis = millis();
     firebaseRanSomething = true;
     if (timeAvailable) {
-      if (!firebaseSendDayData()) {
-        firebaseAvailableHelper = false;
-      }
-      if (!firebaseDeleteOldData("/data/dayData/", 24 * 60 * 60, 2)) {
-        firebaseAvailableHelper = false;
-      }
+      firebaseAvailDay = firebaseSendDayData();
+      firebaseAvailDeleteDay = firebaseDeleteOldData("/data/dayData/", 24 * 60 * 60, 2);
     }
 
     liveGenW = 10000;
@@ -163,16 +180,12 @@ void runDayDataUpdate() {
 
 void runMonthDataUpdate() {
 
-  if (millis() - lastMonthDataUpdateMillis > lastMonthDataUpdateMillisInterval) {
+  if (millis() - lastMonthDataUpdateMillis > monthDataUpdateMillisInterval) {
     lastMonthDataUpdateMillis = millis();
     firebaseRanSomething = true;
     if (timeAvailable) {
-      if (!firebaseSendMonthData()) {
-        firebaseAvailableHelper = false;
-      }
-      if (!firebaseDeleteOldData("/data/monthData/", 31 * 24 * 60 * 60, 2)) {
-        firebaseAvailableHelper = false;
-      }
+      firebaseAvailMonth = firebaseSendMonthData();
+      firebaseAvailDeleteMonth = firebaseDeleteOldData("/data/monthData/", 31 * 24 * 60 * 60, 2);
     }
     //after testing, these variables should actually be reset to 0 for the next day
     dayGenWh = random(1400, 2000);

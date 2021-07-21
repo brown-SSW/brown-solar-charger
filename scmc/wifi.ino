@@ -1,5 +1,4 @@
 void setupWifi() {
-  boolean report = true;
   WiFi.mode(WIFI_STA);
   WiFi.begin(wifi_ssid, wifi_password); //connect to wifi network, remove password for open networks
 }
