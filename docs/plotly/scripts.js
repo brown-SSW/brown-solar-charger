@@ -271,7 +271,7 @@ function liveUp(d) {
     now_off = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
     // console.log(now.getTime());
     since = new Date(Math.abs(now_off - (d.time * 1000)));
-    fill_stat('lastUpdate', dateSince(since));
+    fill_stat('lastUpdate', tdiff(now_off/1000,d.time));
 }
 
 function dateSince(date) {
@@ -447,4 +447,49 @@ function combineConfig(obj, cfig) {
         }
     }
     return d;
+}
+function tdiff(a,b){
+    t = (a - b);
+    d = (24*60*60);
+    h = (60*60);
+    m = 60;
+    days = Math.floor(t/(d));
+    hours = Math.floor((t-days*d)/h);
+    minutes = Math.floor((t-days*d-hours*h)/m);
+    seconds = Math.floor(t-days*d-hours*h-minutes*m);
+    str = "";
+    // str = days+" days, "+hours+" hours, "+minutes+" minutes,"+seconds+" seconds";
+    if (t <=0){
+        return "just now";
+    }
+    if (days > 0){
+        str += days+" day";
+        if (days > 1){
+            str += "s";
+        }
+        str += ", ";
+    }
+    if (hours > 0){
+        str += hours+" hour";
+        if (hours > 1){
+            str += "s";
+        }
+        str += ", ";
+    }
+    if (minutes > 0){
+        str += minutes+" minute";
+        if (minutes > 1){
+            str += "s";
+        }
+        str += ", ";
+    }
+    if (seconds > 0){
+        str += seconds+" second";
+        if (seconds > 1){
+            str += "s";
+        }
+        str += ", ";
+    }
+    str = str.substring(0,str.length-2);
+    return str+" ago";
 }
