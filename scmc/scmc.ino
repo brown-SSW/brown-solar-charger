@@ -69,7 +69,7 @@ unsigned long lastCalcUpdateMillis = 0;
 long calcUpdateMillisInterval = 1000;
 
 unsigned long lastLoadSettingsMillis = 0;
-long loadSettingsMillisInterval = 10000;
+long loadSettingsMillisInterval = 60000;
 
 long wifiCheckIntervalMillis = 5000;
 

@@ -59,7 +59,7 @@ boolean firebaseRecvDebug() {
     fjson = fbdo.jsonObject();
 
     fjson.get(jsonData, "/EnableOTA");
-    if (jsonData.type == "bool") {
+    if (jsonData.typeNum == FirebaseJson::JSON_BOOL) {
       otaEnable = jsonData.boolValue;
     } else {
       Serial.println("ERROR! Firebase (RecvDebug) EnableOTA type wrong");
@@ -127,7 +127,7 @@ boolean firebaseDeleteOldData(String path, unsigned long interval, byte num) {
           if (!Firebase.RTDB.deleteNode(&fbdo, nodeToDelete.c_str())) {
             Serial.println("ERROR! Firebase (delete delete)");
             Serial.println(fbdo.errorReason());
-            //report = false; deleteNode seems to work even though error is thrown TODO: uncomment this
+            report = false;
           }
         }
         fjson.iteratorEnd();
