@@ -38,6 +38,7 @@ boolean firebaseGetSettings() {
 boolean firebaseSendDebug() {
   fjson.clear();
   fjson.set("local ip", WiFi.localIP().toString());
+  fjson.set("mac address", WiFi.macAddress());
   fjson.set("OTAEnabled (read)", otaEnable);
   fjson.set("time", int(timestampEpoch));
   fjson.set("minAfterMidnight", minutesAfterMidnight());
