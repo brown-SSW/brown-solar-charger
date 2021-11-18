@@ -131,6 +131,7 @@ strong {
 
 .carousel div {
     width: 100%;
+    height: 100%;
     z-index: -2;
     /*transition: background-image .5s ease;*/
     animation: sweep .5s ease-in-out;
@@ -166,6 +167,10 @@ button.carousel-nav {
 
 details[open] summary~* {
     animation: sweep .5s ease-in-out;
+}
+
+details summary::-webkit-details-marker {
+  display:none;
 }
 
 @keyframes sweep {
