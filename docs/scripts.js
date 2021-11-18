@@ -5,16 +5,17 @@ const end_bit = '.json';
 const config = {
     // staticPlot: true, //makes chart static and no longer interactive, uncomment to turn them into static plots
     displayModeBar: false, // disables toolbar for aesthetics
-    responsive: true // Makes plot responsive to window size
+    responsive: true, // Makes plot responsive to window size
 };
+const mgin = 70;
 const layout = {
-    //  margin: {
-    //   l: 0,
-    //   r: 0,
-    //   b: 0,
-    //   t: 0,
-    //   pad: 0
-    // },
+    margin: {
+        l: mgin,
+        r: mgin,
+        b: mgin,
+        t: mgin,
+        // pad: 30
+    },
     hovermode: 'x unified',
     xaxis: {
         showgrid: false,
@@ -27,10 +28,17 @@ const layout = {
         fixedrange: true
     }
 };
-const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
-const gen_color = "#21bf27";
-const use_color = "#F4AC45"; //"#00bec4";
-const batt_color = "#00bec4";
+// const section_colors = ["#d02c06", "#F4AC45", "#21bf27"];
+// const gen_color = "#21bf27";
+// const use_color = "#F4AC45"; //"#00bec4";
+// const batt_color = "#00bec4";
+const section_colors = ["#aa7a81", "#E08E45", "#81AA7A"];
+const gen_color = "#81AA7A";
+const use_color = "#E08E45"; //"#00bec4";
+const batt_color = "#7a81aa";
+
+// const txt_color = '#1f2120';
+const txt_color = '#5A5A5A';
 const batt_lay = {
     id: "battery", // the id of the html element
     // title: "Battery Capacity",
@@ -50,7 +58,9 @@ const batt_lay = {
     levelColorsGradient: false,
     // gaugeColor: "#00000000", // set transparency
     levelColors: levelSectors(section_colors, [2, 3, 5]), // may need to change to make adaptive to LowBatteryThreshold settings const
-    relativeGaugeSize: true
+    relativeGaugeSize: true,
+    valueFontColor: txt_color,
+    labelFontColor: txt_color
 };
 
 function levelSectors(colors, frac) {
@@ -74,14 +84,14 @@ const g_lay = {
         toplength: -15,
         bottomlength: 10,
         bottomwidth: 12,
-        color: '#1f2120',
+        color: txt_color,
         stroke: '#ffffff',
         stroke_width: 3,
         stroke_linecap: 'round'
     },
     // levelColors: ["#00bec4"],
-    labelFontColor: '#1f2120',
-    valueFontColor: '#1f2120',
+    labelFontColor: txt_color,
+    valueFontColor: txt_color,
     relativeGaugeSize: true,
 
 };
@@ -103,13 +113,16 @@ var Co2PerWh;
 // https://github.com/bernii/gauge.js/
 // https://github.com/toorshia/justgage
 const plot_generic = {
-
+    font: {
+        family: 'Arial, sans-serif',
+        color: txt_color
+    }
 }
 const wGen_trace = {
     fill: 'tozeroy',
     type: 'scatter',
     mode: 'lines',
-    name: 'Power Generated',
+    name: 'Generated',
     hovertemplate: '%{y:.2f} W',
     line: {
         color: gen_color,
@@ -125,14 +138,14 @@ const w_lay = {
         // title: 'Time'
     },
     showlegend: true,
-    legend: { xanchor: 'center', x: 0.5,y: 1.15, orientation: 'h',bgcolor: '#00000000', traceorder:'normal'} 
+    legend: { xanchor: 'center', x: 0.5, y: 1.05, orientation: 'h', bgcolor: '#00000000', traceorder: 'normal' }
 
 };
 const wUse_trace = {
     fill: 'tonexty',
     type: 'scatter',
     mode: 'lines',
-    name: 'Power Used',
+    name: 'Used',
     hovertemplate: '%{y:.2f} W',
     line: {
         color: use_color,
@@ -143,7 +156,7 @@ const whGen_trace = {
     // fill: 'tozeroy',
     type: 'bar',
     // mode: 'lines+markers',
-    name: 'Energy Generated',
+    name: 'Generated',
     hovertemplate: '%{y:.2f} Wh',
     marker: {
         color: gen_color,
@@ -154,7 +167,7 @@ const whUse_trace = {
     // fill: 'tozeroy',
     type: 'bar',
     // mode: 'lines+markers',
-    name: 'Energy Used',
+    name: 'Used',
     hovertemplate: '%{y:.2f} Wh',
     marker: {
         color: use_color,
@@ -175,7 +188,7 @@ const wh_lay = {
     // },
     // autosize: true,
     showlegend: true,
-    legend: { xanchor: 'center', x: 0.5,y: 1.15, orientation: 'h',bgcolor: '#00000000', } 
+    legend: { xanchor: 'center', x: 0.5, y: 1.05, orientation: 'h', bgcolor: '#00000000', }
 };
 
 
@@ -200,6 +213,41 @@ const battplot_lay = {
     },
     showlegend: false,
 };
+
+const setIdle = () => {
+    img.style.animation = "idle .5s linear infinite";
+}
+const moveRight = () => {
+    if (position >= pictures.length - 1) {
+        position = 0;
+        img.style.backgroundImage = 'url(' + pictures[position] + ')';
+        img.style.animation = "sweep-right .5s ease-in-out";
+        setTimeout(setIdle, 500);
+        // img.src = pictures[position];
+        return;
+    }
+    img.style.backgroundImage = 'url(' + pictures[position + 1] + ')';
+    img.style.animation = "sweep-right .5s ease-in-out";
+    setTimeout(setIdle, 500);
+    // img.src = pictures[position + 1];
+    position++;
+}
+
+const moveLeft = () => {
+    if (position < 1) {
+        position = pictures.length - 1;
+        img.style.backgroundImage = 'url(' + pictures[position] + ')';
+        img.style.animation = "sweep .5s ease-in-out";
+        setTimeout(setIdle, 500);
+        // img.src = pictures[position];
+        return;
+    }
+    // img.src = pictures[position - 1];
+    img.style.backgroundImage = 'url(' + pictures[position - 1] + ')';
+    img.style.animation = "sweep .5s ease-in-out";
+    position--;
+    setTimeout(setIdle, 500);
+}
 
 // data loading
 // ah yes creative variable names
@@ -271,7 +319,7 @@ function liveUp(d) {
     now_off = now.getTime() + (now.getTimezoneOffset() * 60 * 1000);
     // console.log(now.getTime());
     since = new Date(Math.abs(now_off - (d.time * 1000)));
-    fill_stat('lastUpdate', tdiff(now_off/1000,d.time));
+    fill_stat('lastUpdate', tdiff(now_off / 1000, d.time));
 }
 
 function dateSince(date) {
@@ -321,7 +369,7 @@ function call_settings(d) {
     MidBatteryThreshold = d.MidBatteryThreshold;
     Co2PerWh = d.Co2PerWh;
     // lastUpdate.settings = new Date();
-    if (!(message == 'null' || message =='')) {
+    if (!(message == 'null' || message == '')) {
         // avail.classList.add("hide");
         // unavail.classList.add("hide");
         fill_stat('maintain', message);
@@ -345,8 +393,10 @@ function call_plots_day(din) {
     // timeBar(dout, 'WGen', 's1', self);
     power_arr = [combineConfig(makeTrace(dout, 'time', 'WUse', toDate, self), wUse_trace), combineConfig(makeTrace(dout, 'time', 'WGen', toDate, self), wGen_trace)];
     batt_arr = [combineConfig(makeTrace(dout, 'time', 'bat%', toDate, batt_scale), batt_trace)];
-    Plotly.newPlot('power-daily', power_arr.reverse(), combineConfig(w_lay, layout), config);
-    Plotly.newPlot('batt-daily', batt_arr, combineConfig(battplot_lay, layout), config);
+    w = combineConfig(w_lay, plot_generic);
+    battplot = combineConfig(battplot_lay, plot_generic);
+    Plotly.newPlot('power-daily', power_arr.reverse(), combineConfig(w, layout), config);
+    Plotly.newPlot('batt-daily', batt_arr, combineConfig(battplot, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
@@ -361,8 +411,9 @@ function call_plots_month(din) {
     }
     // console.log(dout);
     // timeBar(dout, 'WGen', 's1', self);
+    wh = combineConfig(wh_lay, plot_generic);
     energy_arr = [combineConfig(makeTrace(dout, 'time', 'WhGen', toDate, self), whGen_trace), combineConfig(makeTrace(dout, 'time', 'WhUse', toDate, self), whUse_trace)];
-    Plotly.newPlot('energy-monthly', energy_arr, combineConfig(wh_lay, layout), config);
+    Plotly.newPlot('energy-monthly', energy_arr, combineConfig(wh, layout), config);
     // timeLine(dout, 'WUse', 's2', self,false,'');
     // timeLine(dout, 'bat%', 's3', batt_scale,true,'tozeroy');
     // timeBar(dout, 'bat%', 's4', self);
@@ -448,48 +499,49 @@ function combineConfig(obj, cfig) {
     }
     return d;
 }
-function tdiff(a,b){
+
+function tdiff(a, b) {
     t = (a - b);
-    d = (24*60*60);
-    h = (60*60);
+    d = (24 * 60 * 60);
+    h = (60 * 60);
     m = 60;
-    days = Math.floor(t/(d));
-    hours = Math.floor((t-days*d)/h);
-    minutes = Math.floor((t-days*d-hours*h)/m);
-    seconds = Math.floor(t-days*d-hours*h-minutes*m);
+    days = Math.floor(t / (d));
+    hours = Math.floor((t - days * d) / h);
+    minutes = Math.floor((t - days * d - hours * h) / m);
+    seconds = Math.floor(t - days * d - hours * h - minutes * m);
     str = "";
     // str = days+" days, "+hours+" hours, "+minutes+" minutes,"+seconds+" seconds";
-    if (t <=0){
+    if (t <= 0) {
         return "just now";
     }
-    if (days > 0){
-        str += days+" day";
-        if (days > 1){
+    if (days > 0) {
+        str += days + " day";
+        if (days > 1) {
             str += "s";
         }
         str += ", ";
     }
-    if (hours > 0){
-        str += hours+" hour";
-        if (hours > 1){
+    if (hours > 0) {
+        str += hours + " hour";
+        if (hours > 1) {
             str += "s";
         }
         str += ", ";
     }
-    if (minutes > 0){
-        str += minutes+" minute";
-        if (minutes > 1){
+    if (minutes > 0) {
+        str += minutes + " minute";
+        if (minutes > 1) {
             str += "s";
         }
         str += ", ";
     }
-    if (seconds > 0){
-        str += seconds+" second";
-        if (seconds > 1){
+    if (seconds > 0) {
+        str += seconds + " second";
+        if (seconds > 1) {
             str += "s";
         }
         str += ", ";
     }
-    str = str.substring(0,str.length-2);
-    return str+" ago";
+    str = str.substring(0, str.length - 2);
+    return str + " ago";
 }

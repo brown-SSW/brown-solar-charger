@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="EN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brown Solar Charger</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
+    <!-- Raphael must be included before justgage -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/justgage/1.2.9/justgage.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="scripts.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<!-- 
+https://medium.com/@vworri/use-plotly-in-javascript-to-creat-a-bar-graph-from-json-82d7220b463d
+https://stackoverflow.com/questions/1078118/how-do-i-iterate-over-a-json-structure#1112609
+https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
+ -->
+
+<body class='container'>
+    <div id="maintain" class='disp'></div>
+    <div class='c1'>
+        <h1>The Solar Charger</h1>
+        <p>Maintained by <a href="https://brown-ssw.github.io" target="_blank">Scientists for a Sustainable World</a>.</p>
+        <p>We built a solar charger station. </p>
+        <p>Last updated <strong><span id='lastUpdate'></span></strong>.</p>
+        <ul>
+            <li>Cumulative Wh Generated: <strong><span id="wh-cumu">0</span></strong> Wh</li>
+            <li>Cumulative CO<sub>2</sub> Saved (lbs): <strong><span id="co2-cumu">0</span></strong> lbs</li>
+        </ul>
+        <details>
+            <summary>Learn more...</summary>
+            <p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).</p>
+        </details>
+        <!-- <img src="https://brown-ssw.github.io/plant.png"> -->
+        <iframe id="map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2973.0989362564396!2d-71.40004258456052!3d41.82616767922632!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89e4453b2e0ae5f7%3A0x6d1e6456b240d602!2sBarus%20and%20Holley!5e0!3m2!1sen!2sus!4v1636955090900!5m2!1sen!2sus" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+    <div class='c2'>
+        <div id="avail" class='status'>Available</div>
+        <div id="unavail" class='status disp'>Unavailable</div>
+        <div class="dials">
+            <div id="g1"></div>
+            <div id="battery"></div>
+            <div id="g2"></div>
+        </div>
+        <div class='plots'>
+            <div id="power-daily" class='plot'></div>
+            <div id="energy-monthly" class='plot'></div>
+            <div id="batt-daily" class='plot'></div>
+            <div id='station' class="carousel">
+                <button id="left-btn" class='carousel-nav'>&#11164;</button>
+                <!-- <img id="stn" src="" alt=""> -->
+                <div id="stn" style='background-image: none;'></div>
+                <button id="right-btn" class='carousel-nav'>&#11166;</button>
+            </div>
+        </div>
+    </div>
+    <!-- <div id="s4" class='plot'></div> -->
+    <script type="text/javascript">
+    let pictures = ['https://images.unsplash.com/photo-1537000092872-06bbf7b64f60?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=14d2fe1244b43a1841569da918066fc4&auto=format&fit=crop&w=1050&q=80', 'https://images.unsplash.com/photo-1537005081207-04f90e3ba640?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=ffb71f2a2843e802e238c5ff8e4bbb8c&auto=format&fit=crop&w=764&q=80', 'https://images.unsplash.com/photo-1536873602512-8e88cc8398b1?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=60a351868d0839e686c8c5a286265f8d&auto=format&fit=crop&w=1050&q=80'];
+    let upTime = 30; //seconds
+    let downTime = 5; //seconds
+
+
+    var batt = new JustGage(batt_lay);
+    var g1 = new JustGage(norm_gauge({ 'id': 'g1', 'max': 10, 'symbol': ' W', 'label': 'Generated', 'levelColors': [gen_color] }));
+    var g2 = new JustGage(norm_gauge({ 'id': 'g2', 'max': 10, 'symbol': ' W', 'label': 'Used', 'levelColors': [use_color] }));
+    let avail = document.getElementById('avail');
+    let unavail = document.getElementById('unavail');
+    let maintain = document.getElementById('maintain');
+    // might be smart to set the same values for 'down'.
+    loadJSON('settings', call_settings, { 'up': upTime * 1000, 'down': downTime * 1000 });
+    // loadJSON('data/liveData',call_stats, {'up':upTime*1000, 'down':5*1000});
+    // loadJSON('data/dayData',call_plots, {'up':upTime*1000, 'down':5*1000});
+    setTimeout(loadJSON, 10, 'data/liveData', call_stats, { 'up': upTime * 1000, 'down': downTime * 1000 });
+    setTimeout(loadJSON, 10, 'data/dayData', call_plots_day, { 'up': upTime * 1000, 'down': downTime * 1000 });
+    setTimeout(loadJSON, 10, 'data/monthData', call_plots_month, { 'up': upTime * 1000, 'down': downTime * 1000 });
+    //Carousel stuff
+    const img = document.getElementById('stn');
+    const rightBtn = document.getElementById('right-btn');
+    const leftBtn = document.getElementById('left-btn');// Images are from unsplash
+    // img.src = pictures[0];
+    img.style.backgroundImage = 'url('+pictures[0]+')';
+    let position = 0;
+    rightBtn.addEventListener("click", moveRight);
+    leftBtn.addEventListener("click", moveLeft);
+    </script>
+</body>
+
+</html>
