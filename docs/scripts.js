@@ -295,6 +295,8 @@ function fill_stat(id, stat) {
 
 function call_stats(d) {
     liveUp(d);
+    // increments carousel on each stats update (~30 seconds), still can manual control between update
+    moveRight(); // comment out to disable "slideshow"
     if (d.Available) {
         availUp();
     } else {
