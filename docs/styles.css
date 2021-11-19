@@ -9,6 +9,7 @@
     --blue: #7a81aa;
     --purple: #a37aaa;
     --yellow: #aaa37a;
+    --svg-fill: var(--purple);
 }
 
 * {
@@ -228,20 +229,37 @@ summary:hover {
     cursor: pointer;
 }
 
-summary::before {
-    content: '🛈';
-    /*margin-right: 0.5rem;*/
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    float: left;
-    color: inherit;
-    /*transition: content 100ms ease;*/
+summary {
+  /*list-style-image: url(expand.svg);*/
+  /*vertical-align: middle;*/
+  /*transform: ;*/
 }
 
-details[open] summary::before {
-    content: '✖';
+/*details[open] summary{
+    list-style-image: url(close.svg);
+}*/
+
+/*summary::-webkit-details-marker {
+  background: url(expand.svg);
+  color: transparent;
+}*/
+
+summary::before {
+    content: '';
+    width: 2rem;
+    aspect-ratio: 1/1;
+    display: inline-block;
+    float: left;
+    color: inherit;
+    background-image: url(expand.svg);
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+details[open] > summary::before {
+    background-image: url(close.svg);
+
 }
 
 .c1 img,

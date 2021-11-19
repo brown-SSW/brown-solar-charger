@@ -32,12 +32,11 @@ const layout = {
 // const gen_color = "#21bf27";
 // const use_color = "#F4AC45"; //"#00bec4";
 // const batt_color = "#00bec4";
+// const txt_color = '#1f2120';
 const section_colors = ["#aa7a81", "#E08E45", "#81AA7A"];
 const gen_color = "#81AA7A";
 const use_color = "#E08E45"; //"#00bec4";
 const batt_color = "#7a81aa";
-
-// const txt_color = '#1f2120';
 const txt_color = '#5A5A5A';
 const batt_lay = {
     id: "battery", // the id of the html element
