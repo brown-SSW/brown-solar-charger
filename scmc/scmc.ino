@@ -44,6 +44,11 @@ time_t timestampEpoch; //internet time
 
 unsigned long wifiCheckUpdateMillis = 0;
 
+//settings (from database)
+int BatteryDischargeFloor = 50;
+int LowBatteryThreshold = 20;
+int MidBatteryThreshold = 40;
+
 //live data
 float liveGenW = 0.0;
 float liveUseW = 0.0;
@@ -82,6 +87,7 @@ void setup() {
   setSafe();//everything should be in the safest state until the code has fully started
   setupWifi();
   setupOTA();
+  setupDashboard();
   Serial.println("STARTING Loop!");
   digitalWrite(LED_BUILTIN, LOW);  //one time setup finished
 }
@@ -124,7 +130,7 @@ void loop() {
       firebaseAvailableAlerted = true;
     }
   }
-
+  runDashboard();
   runOTA();
   vTaskDelay(20);
 }

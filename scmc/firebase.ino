@@ -20,6 +20,28 @@ boolean firebaseGetSettings() {
   if (Firebase.RTDB.getJSON(&fbdo, "/settings")) {
     fjson = fbdo.jsonObject();
 
+
+    fjson.get(jsonData, "/BatteryDischargeFloor");
+    if (jsonData.type == "int") {
+      BatteryDischargeFloor = jsonData.intValue;
+    } else {
+      Serial.println("ERROR! Firebase (settings) BatteryDischargeFloor type wrong");
+    }
+
+    fjson.get(jsonData, "/LowBatteryThreshold");
+    if (jsonData.type == "int") {
+      LowBatteryThreshold = jsonData.intValue;
+    } else {
+      Serial.println("ERROR! Firebase (settings) LowBatteryThreshold type wrong");
+    }
+
+    fjson.get(jsonData, "/MidBatteryThreshold");
+    if (jsonData.type == "int") {
+      MidBatteryThreshold = jsonData.intValue;
+    } else {
+      Serial.println("ERROR! Firebase (settings) MidBatteryThreshold type wrong");
+    }
+
     fjson.get(jsonData, "/liveDataUpdateIntervalMillis");
     if (jsonData.type == "int") {
       liveDataUpdateMillisInterval = jsonData.intValue;
