@@ -1,8 +1,14 @@
 #include <FastLED.h>
+#include <Wire.h> // Enable this line if using Arduino Uno, Mega, etc.
+#include <Adafruit_GFX.h>
+#include "Adafruit_LEDBackpack.h"
+
+Adafruit_7segment matrix = Adafruit_7segment();
 const byte lct = 12;
 const byte neopixelPin = 23;
 CRGB leds[lct];
 void setupDashboard() {
+  matrix.begin(0x70);
   setupDashboardLEDS();
 }
 void setupDashboardLEDS() {
@@ -10,7 +16,14 @@ void setupDashboardLEDS() {
 }
 void runDashboard() {
   displayDashboardBatIndicator(liveBatPer);
+  printToDisplay(liveUseW);
 }
+
+void printToDisplay(int wattage) {
+  matrix.print(wattage, DEC);
+  matrix.writeDisplay();
+}
+
 void displayDashboardBatIndicator(int percent) {
   memset(leds, CRGB(0, 0, 0), sizeof(leds));
   percent = remapPercent(percent, BatteryDischargeFloor);
