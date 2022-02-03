@@ -4,6 +4,25 @@
    microcontroller: esp32
    charge controller: Renogy ROVER ELITE 40A MPPT
 
+Using library WiFi at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\WiFi 
+Using library ESP_Mail_Client at version 1.6.4 in folder: C:\Users\Joshua\Documents\Arduino\libraries\ESP_Mail_Client 
+Using library SD at version 1.0.5 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\SD 
+Using library FS at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\FS 
+Using library SPI at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\SPI 
+Using library SPIFFS at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\SPIFFS 
+Using library Dusk2Dawn at version 1.0.1 in folder: C:\Users\Joshua\Documents\Arduino\libraries\Dusk2Dawn 
+Using library Firebase_Arduino_Client_Library_for_ESP8266_and_ESP32 at version 2.6.7 in folder: C:\Users\Joshua\Documents\Arduino\libraries\Firebase_Arduino_Client_Library_for_ESP8266_and_ESP32 
+Using library WiFiClientSecure at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\WiFiClientSecure 
+Using library FastLED at version 3.5.0 in folder: C:\Users\Joshua\Documents\Arduino\libraries\FastLED 
+Using library Wire at version 1.0.1 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\Wire 
+Using library Adafruit_GFX_Library at version 1.10.12 in folder: C:\Users\Joshua\Documents\Arduino\libraries\Adafruit_GFX_Library 
+Using library Adafruit_LED_Backpack_Library at version 1.3.2 in folder: C:\Users\Joshua\Documents\Arduino\libraries\Adafruit_LED_Backpack_Library 
+Using library Adafruit_BusIO at version 1.10.1 in folder: C:\Users\Joshua\Documents\Arduino\libraries\Adafruit_BusIO 
+Using library ESPmDNS at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\ESPmDNS 
+Using library ArduinoOTA at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\ArduinoOTA 
+Using library Update at version 1.0 in folder: C:\Users\Joshua\AppData\Local\Arduino15\packages\esp32\hardware\esp32\1.0.6\libraries\Update 
+
+
    Made by members of Brown University club "Scientists for a Sustainable World" (s4sw@brown.edu) 2021 https://github.com/brown-SSW/brown-solar-charger
 */
 #include <Arduino.h>

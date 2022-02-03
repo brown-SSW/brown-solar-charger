@@ -8,7 +8,7 @@ const byte lct = 12;
 const byte neopixelPin = 23;
 CRGB leds[lct];
 void setupDashboard() {
-  matrix.begin(0x70);
+//  matrix.begin(0x70);
   setupDashboardLEDS();
 }
 void setupDashboardLEDS() {
@@ -16,7 +16,7 @@ void setupDashboardLEDS() {
 }
 void runDashboard() {
   displayDashboardBatIndicator(liveBatPer);
-  printToDisplay(liveUseW);
+//  printToDisplay(liveUseW);
 }
 
 void printToDisplay(int wattage) {
