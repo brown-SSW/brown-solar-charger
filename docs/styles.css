@@ -101,23 +101,23 @@ strong {
 
 #power-daily {
     grid-column-start: 1;
-    grid-row-start: 1;
+    grid-row-start: 2;
 }
 
 #energy-monthly {
     grid-column-start: 2;
-    grid-row-start: 1;
+    grid-row-start: 2;
 }
 
 #batt-daily {
     grid-column-start: 1;
-    grid-row-start: 2;
+    grid-row-start: 1;
     /*display: none;*/
 }
 
 #station {
     grid-column-start: 2;
-    grid-row-start: 2;
+    grid-row-start: 1;
     vertical-align: middle;
     /*padding: 80px;*/
 }
@@ -155,15 +155,16 @@ button.carousel-nav {
     min-height: 10%;
     border: none;
     outline: none;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 2px;
-    color: white;
-    font-size: 2rem;
-    text-align: center;
-    /*vertical-align: super;*/
+    background: rgba(0,0,0, 0.5);
+    border-radius: 50%;
     cursor: pointer;
-    padding: 1rem;
+    padding: 0.5rem;
     display: flex;
+    transition: background 100ms ease;
+}
+
+button.carousel-nav:hover, button.carousel-nav:focus {
+    background: rgba(158, 184, 172, 0.5);
 }
 
 details[open] summary~* {
@@ -186,6 +187,18 @@ details summary::-webkit-details-marker {
     }
 }
 
+@keyframes sweep-rev {
+    0% {
+        opacity: 0;
+        transform: translateX(0)
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateX(-100%)
+    }
+}
+
 @keyframes sweep-right {
     0% {
         opacity: 0;
@@ -200,6 +213,26 @@ details summary::-webkit-details-marker {
 
 @keyframes idle {
     100% {}
+}
+
+@keyframes pic-right{
+    0%{
+        opacity: 1;
+        transform: translateX(0);
+        background-image:  url(var(--old));
+    }
+
+    50%{
+        opacity: 0;
+        transform: translateX(-100%);
+        /*background-image:  var(--old);*/
+    }
+
+    100%{
+        opacity: 1;
+        transform: translateX(0);
+        background-image:  url(var(--new));
+    }
 }
 
 summary {
@@ -251,14 +284,14 @@ summary::before {
     display: inline-block;
     float: left;
     color: inherit;
-    background-image: url(expand.svg);
+    background-image: url(maximize-2.svg);
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;
 }
 
 details[open] > summary::before {
-    background-image: url(close.svg);
+    background-image: url(minimize-2.svg);
 
 }
 

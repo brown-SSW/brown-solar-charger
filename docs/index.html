@@ -51,16 +51,21 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
             <div id="energy-monthly" class='plot'></div>
             <div id="batt-daily" class='plot'></div>
             <div id='station' class="carousel">
-                <button id="left-btn" class='carousel-nav'>&#11164;</button>
+                <button id="left-btn" class='carousel-nav'><img src="arrow-left-circle.svg"></button>
                 <!-- <img id="stn" src="" alt=""> -->
                 <div id="stn" style='background-image: none;'></div>
-                <button id="right-btn" class='carousel-nav'>&#11166;</button>
+                <button id="right-btn" class='carousel-nav'><img src="arrow-right-circle.svg"></button>
             </div>
         </div>
     </div>
     <!-- <div id="s4" class='plot'></div> -->
     <script type="text/javascript">
-    let pictures = ['https://images.unsplash.com/photo-1537000092872-06bbf7b64f60?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=14d2fe1244b43a1841569da918066fc4&auto=format&fit=crop&w=1050&q=80', 'https://images.unsplash.com/photo-1537005081207-04f90e3ba640?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=ffb71f2a2843e802e238c5ff8e4bbb8c&auto=format&fit=crop&w=764&q=80', 'https://images.unsplash.com/photo-1536873602512-8e88cc8398b1?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=60a351868d0839e686c8c5a286265f8d&auto=format&fit=crop&w=1050&q=80'];
+    let pictures = [
+        'https://images.unsplash.com/photo-1614366502473-e54666693b44',
+        'https://images.unsplash.com/photo-1629726797843-618688139f5a',
+        'https://images.unsplash.com/photo-1625301840055-7c1b7198cfc0',
+        'https://images.unsplash.com/photo-1613665813446-82a78c468a1d'
+    ];
     let upTime = 30; //seconds
     let downTime = 5; //seconds
 

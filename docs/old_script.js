@@ -1,3 +1,70 @@
+var r = document.querySelector(':root');
+const setIdle = () => {
+    img.style.animation = "idle .5s linear infinite";
+}
+const moveRight = () => {
+    if (position >= pictures.length - 1) {
+        position = 0;
+        img.style.animation = "sweep .5s ease-in-out";
+        sleep(500);
+        img.style.backgroundImage = 'url(' + pictures[position] + ')';
+        img.style.animation = "sweep-right .5s ease-in-out";
+        sleep(500);
+        setIdle();
+        // img.src = pictures[position];
+        return;
+    }
+    r.style.setProperty('--old', pictures[position]);
+    r.style.setProperty('--new', pictures[position+1]);
+    img.style.animation = "pic-right 1s ease-in-out";
+    // sleep(500);
+    img.style.backgroundImage = 'url(' + pictures[position + 1] + ')';
+    // img.style.animation = "sweep-right .5s ease-in-out";
+    // setTimeout(setIdle, 500);
+    // sleep(500);
+    setIdle();
+    // img.src = pictures[position + 1];
+    position++;
+}
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
+const moveLeft = () => {
+    if (position < 1) {
+        position = pictures.length - 1;
+        // img.style.animation = "sweep-rev .5s ease-in-out";
+        // sleep(500);
+        img.style.animation = "sweep-rev .5s ease-in-out";
+        sleep(1000);
+        img.style.backgroundImage = 'url(' + pictures[position] + ')';
+        
+        // setTimeout(setIdle,500);
+        // sleep(500);
+        // img.style.animation = "idle .5s linear infinite";
+        // img.src = pictures[position];
+        return;
+    }
+    // img.src = pictures[position - 1];
+    // img.style.animation = "sweep-rev .5s ease-in-out";
+    // sleep(500);
+    img.style.animation = "sweep-rev .5s ease-in-out";
+    sleep(1000);
+    img.style.backgroundImage = 'url(' + pictures[position - 1] + ')';
+    sleep(1000);
+    img.style.animation = "sweep .5s ease-in-out";
+    
+    position--;
+    setTimeout(setIdle,500);
+    // sleep(500);
+    // img.style.animation = "idle .5s linear infinite";
+
+}
+
+
 function loadJSONOld() {
     //http request to get the json
     var http = new XMLHttpRequest();
