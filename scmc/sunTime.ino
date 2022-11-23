@@ -11,17 +11,24 @@ int sunsetTime() {
 }
 
 boolean updateTimeClock() {
-  boolean report;
-  if (!timeAvailable) {
-    configTime(3600 * UTC_offset, 0, "pool.ntp.org");
-    delay(333);
+  boolean report = false;
+  if (!timeConfiged && wifiAvailable) {
+    Serial.println("#############CONFIGURING TIME##############");
+    configTime(3600 * UTC_offset, 0, "time.google.com");
+    getLocalTime(&timeClock);
+    timeConfiged = true;
+    delay(1000);
   }
-  if (!getLocalTime(&timeClock)) {
-    report = false;
-    Serial.println("Failed to obtain time!");
-  } else {
-    time(&timestampEpoch);
-    report = true;
+  if (timeConfiged) {
+    if (!getLocalTime(&timeClock)) {
+      report = false;
+      Serial.println("Failed to obtain time!");
+    } else {
+      time(&timestampEpoch);
+      Serial.print("time= ");
+      Serial.println(timestampEpoch);
+      report = true;
+    }
   }
   return report;
 }
