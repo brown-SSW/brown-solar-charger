@@ -8,8 +8,8 @@
     <title>Brown Solar Charger</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☀️</text></svg>">
     <!-- Raphael must be included before justgage -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.4/raphael-min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/justgage/1.2.9/justgage.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js" integrity="sha512-tBzZQxySO5q5lqwLWfu8Q+o4VkTcRGOeQGVQ0ueJga4A1RKuzmAu5HXDOXLEjpbKyV7ow9ympVoa6wZLEzRzDg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/justgage/1.6.1/justgage.min.js" integrity="sha512-QeISJM4NCnUgZl5++o/2d4FwppF+Hh62RbNeA9paupnQvq5KAVvf2ZN3KD99EDoqcSHi1kbG13JMyRXDKBQBSw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="scripts.js"></script>
     <link rel="stylesheet" type="text/css" href="styles.css">
@@ -51,10 +51,10 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
             <div id="energy-monthly" class='plot'></div>
             <div id="batt-daily" class='plot'></div>
             <div id='station' class="carousel">
-                <button id="left-btn" class='carousel-nav'><img src="arrow-left-circle.svg"></button>
+                <!-- <button id="left-btn" class='carousel-nav'><img src="arrow-left-circle.svg"></button> -->
                 <!-- <img id="stn" src="" alt=""> -->
                 <div id="stn" style='background-image: none;'></div>
-                <button id="right-btn" class='carousel-nav'><img src="arrow-right-circle.svg"></button>
+                <!-- <button id="right-btn" class='carousel-nav'><img src="arrow-right-circle.svg"></button> -->
             </div>
         </div>
     </div>
@@ -85,13 +85,14 @@ https://images.plot.ly/plotly-documentation/images/plotly_js_cheat_sheet.pdf
     setTimeout(loadJSON, 10, 'data/monthData', call_plots_month, { 'up': upTime * 1000, 'down': downTime * 1000 });
     //Carousel stuff
     const img = document.getElementById('stn');
-    const rightBtn = document.getElementById('right-btn');
-    const leftBtn = document.getElementById('left-btn');// Images are from unsplash
+    // const rightBtn = document.getElementById('right-btn');
+    // const leftBtn = document.getElementById('left-btn');// Images are from unsplash
     // img.src = pictures[0];
     img.style.backgroundImage = 'url('+pictures[0]+')';
     let position = 0;
-    rightBtn.addEventListener("click", moveRight);
-    leftBtn.addEventListener("click", moveLeft);
+    // rightBtn.addEventListener("click", moveRight);
+    // leftBtn.addEventListener("click", moveLeft);
+    advanceP();
     </script>
 </body>
 

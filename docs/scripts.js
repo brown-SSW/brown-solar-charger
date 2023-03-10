@@ -232,12 +232,28 @@ const moveRight = () => {
     position++;
 }
 
+const advanceP = () => {
+    if (position >= pictures.length - 1) {
+        position = 0;
+        img.style.backgroundImage = 'url(' + pictures[position] + ')';
+        // img.style.animation = "sweep-right .5s ease-in-out";
+        // setTimeout(setIdle, 500);
+        // img.src = pictures[position];
+    } else {
+    img.style.backgroundImage = 'url(' + pictures[position + 1] + ')';
+    // img.style.animation = "sweep-right .5s ease-in-out";
+    // setTimeout(setIdle, 500);
+    // img.src = pictures[position + 1];
+    position++;
+    }
+    setTimeout(advanceP,2000);
+}
+
 const moveLeft = () => {
     if (position < 1) {
         position = pictures.length - 1;
         img.style.backgroundImage = 'url(' + pictures[position] + ')';
-        img.style.animation = "sweep .5s ease-in-out";
-        setTimeout(setIdle, 500);
+        img.style.animation = "sweep .5s ease-in-out";        setTimeout(setIdle, 500);
         // img.src = pictures[position];
         return;
     }
@@ -295,7 +311,7 @@ function fill_stat(id, stat) {
 function call_stats(d) {
     liveUp(d);
     // increments carousel on each stats update (~30 seconds), still can manual control between update
-    moveRight(); // comment out to disable "slideshow"
+    // moveRight(); // comment out to disable "slideshow"
     if (d.Available) {
         availUp();
     } else {
@@ -536,13 +552,13 @@ function tdiff(a, b) {
         }
         str += ", ";
     }
-    if (seconds > 0) {
-        str += seconds + " second";
-        if (seconds > 1) {
-            str += "s";
-        }
-        str += ", ";
-    }
+    // if (seconds > 0) {
+    //     str += seconds + " second";
+    //     if (seconds > 1) {
+    //         str += "s";
+    //     }
+    //     str += ", ";
+    // }
     str = str.substring(0, str.length - 2);
     return str + " ago";
 }
